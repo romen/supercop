@@ -92,6 +92,7 @@ void ECRYPT_encrypt_bytes(ECRYPT_ctx *x_,const u8 *m,u8 *c_,u32 bytes)
 
 #if defined(__AVX512F__)
 #include "u16.h"
+#include "u16mask.h"
 #endif
 
 #if defined(__AVX2__)
