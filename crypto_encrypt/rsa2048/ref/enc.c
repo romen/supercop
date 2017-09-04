@@ -17,9 +17,9 @@
 #error "encrypt_BYTES must be aead_ABYTES + kem_CIPHERTEXTBYTES"
 #endif
 
-static unsigned char nonce[crypto_aead_NPUBBYTES];
-static unsigned char nsec[1];
-static unsigned char ad[1];
+static const unsigned char nonce[crypto_aead_NPUBBYTES];
+static const unsigned char nsec[1];
+static const unsigned char ad[1];
 
 int crypto_encrypt(
   unsigned char *c,unsigned long long *clen,
@@ -30,7 +30,7 @@ int crypto_encrypt(
   unsigned char k[crypto_kem_BYTES];
 
   if (crypto_kem_enc(c,k,pk) < 0) goto error;
-  crypto_aead_encrypt(c + crypto_kem_CIPHERTEXTBYTES,clen,m,mlen,ad,0,nonce,nsec,k);
+  crypto_aead_encrypt(c + crypto_kem_CIPHERTEXTBYTES,clen,m,mlen,ad,0,nsec,nonce,k);
 
   *clen += crypto_kem_CIPHERTEXTBYTES;
   return 0;

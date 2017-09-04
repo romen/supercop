@@ -81,6 +81,18 @@ do
   touch "$top/$abi/gmp/LOCK"
   : > "$top/$abi/gmp/dep"
   echo "$abi/gmp" >&6
+
+  mkdir -p "$top/$abi/ntl"
+  touch "$top/$abi/ntl/BUILD"
+  touch "$top/$abi/ntl/LOCK"
+  echo gmp > "$top/$abi/ntl/dep"
+  echo "$abi/ntl" >&6
+
+  mkdir -p "$top/$abi/keccak"
+  touch "$top/$abi/keccak/BUILD"
+  touch "$top/$abi/keccak/LOCK"
+  : > "$top/$abi/keccak/dep"
+  echo "$abi/keccak" >&6
 done
 
 
@@ -218,7 +230,7 @@ do
           cat "try-anything.c"
           cat "measure-anything.c"
           find "$implementationdir" -follow -type f \
-	  | egrep '\.c$|\.s$|\.S$|\.cc$|\.cpp$' \
+	  | egrep '\.h$|\.c$|\.s$|\.S$|\.cc$|\.cpp$' \
           | xargs cat
         ) \
         | grep '#include' \
@@ -239,6 +251,13 @@ do
               ;;
             gmp*)
               echo gmp
+              ;;
+            NTL*)
+              echo gmp
+              echo ntl
+              ;;
+            libkeccak.a.headers)
+              echo keccak
               ;;
             crypto_*_*)
               op=`echo "$incl" | sed 's/_\(.*\)_/_\1\//'`

@@ -121,6 +121,16 @@ do
         echo "gmp 6.1.2" >&8
       fi
   
+      if [ "$t1" = ntl ]
+      then
+        echo "ntl 10.5.0" >&8
+      fi
+  
+      if [ "$t1" = keccak ]
+      then
+        echo "keccak 20170902" >&8
+      fi
+  
       if [ "$t1" = cryptopp ]
       then
         echo "cryptopp 565" >&8
@@ -266,6 +276,61 @@ do
       exit 0
     fi
 
+    if [ "$t1" = ntl ]
+    then
+      rm -f "$top/$abi/lib/libntl.a"
+      okcpp-$abi | head -1 \
+      | while read cpp cppopts
+      do
+        [ -s "$top/$abi/lib/libntl.a" ] && continue
+        echo "=== `date` === trying CXX=$cpp CXXFLAGS=$cppopts"
+        rm -rf "$top/$target/work"
+        mkdir -p "$top/$target/work"
+        cp -pr ntl-10.5.0/* "$top/$target/work"
+        ( cd "$top/$target/work/src" \
+          && ./configure \
+             CXX="$cpp" CXXFLAGS="$cppopts" \
+             INCLUDEDIR="$top/$abi/include" LIBDIR="$top/$abi/lib" \
+             DOCDIR="$top/$target/work/installdoc" \
+             GMP_INCDIR="$top/$abi/include" GMP_LIBDIR="$top/$abi/lib" \
+          && make \
+          && make check \
+          && make install
+        ) && break || :
+      done
+      exit 0
+    fi
+
+    if [ "$t1" = keccak ]
+    then
+      rm -f "$top/$abi/lib/libkeccak.a"
+      okc-$abi | head -1 \
+      | while read c copts
+      do
+        for keccaktarget in \
+          AVR8 \
+          ARMv8A ARMv7A ARMv7M ARMv6M \
+          KnightsLanding Haswell Bulldozer SandyBridge Nehalem \
+          asmX86-64shdl asmX86-64 \
+          generic64 generic32 reference reference32bits compact
+        do
+          [ -s "$top/$abi/lib/libkeccak.a" ] && continue
+          echo "=== `date` === trying CC=$c CFLAGS=$copts TARGET=$keccaktarget"
+          rm -rf "$top/$target/work"
+          mkdir -p "$top/$target/work"
+          cp -pr k/* "$top/$target/work"
+          ( cd "$top/$target/work" \
+            && env CC="$c" CFLAGS="$copts" make $keccaktarget/libkeccak.a \
+            && mkdir -p "$top/$abi/include/libkeccak.a.headers" \
+            && cp bin/$keccaktarget/libkeccak.a.headers/* "$top/$abi/include/libkeccak.a.headers" \
+            && cp bin/$keccaktarget/libkeccak.a "$top/$abi/lib/libkeccak.a" \
+            && chmod 644 "$top/$abi/lib/libkeccak.a"
+          ) && break || :
+        done
+      done
+      exit 0
+    fi
+
     if [ "$t1" = cryptopp ]
     then
       rm -f "$top/$abi/lib/libcryptopp.a"
@@ -336,7 +401,15 @@ do
           [ -f "$top/$abi/lib/libgmp.a" ] && libs="$top/$abi/lib/libgmp.a $libs"
           [ -f "$top/$abi/lib/libgmpxx.a" ] && libs="$top/$abi/lib/libgmpxx.a $libs"
 	fi
-	if grep '^cryptopp$' "$top/$abi/implementation/$implementationdir/dep" >/dev/null
+	if grep '^ntl ' "$top/$abi/implementation/$implementationdir/sources" >/dev/null
+	then
+          [ -f "$top/$abi/lib/libntl.a" ] && libs="$top/$abi/lib/libntl.a $libs"
+	fi
+	if grep '^keccak ' "$top/$abi/implementation/$implementationdir/sources" >/dev/null
+	then
+          [ -f "$top/$abi/lib/libkeccak.a" ] && libs="$top/$abi/lib/libkeccak.a $libs"
+	fi
+	if grep '^cryptopp ' "$top/$abi/implementation/$implementationdir/sources" >/dev/null
 	then
           [ -f "$top/$abi/lib/libcryptopp.a" ] && libs="$top/$abi/lib/libcryptopp.a $libs"
 	fi

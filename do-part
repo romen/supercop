@@ -177,6 +177,66 @@ done
 okabi \
 | while read abi
 do
+  [ x"$focus" = x"all" -o x"$focus" = x"used" -o x"$focus" = x"ntl" ] || continue
+  echo "=== `date` === building ntl for $abi"
+  mkdir -p "$lib/$abi"
+  mkdir -p "$include/$abi"
+  okcpp-$abi | head -1 \
+  | while read cpp cppopts
+  do
+    echo "=== `date` === trying CXX=$cpp CXXFLAGS=$cppopts"
+    rm -rf "$work"
+    mkdir -p "$work"
+    cp -pr ntl-10.5.0/* "$work"
+    ( cd "$work/src" \
+      && ./configure \
+         CXX="$cpp" CXXFLAGS="$cppopts" \
+         INCLUDEDIR="$include/$abi" LIBDIR="$lib/$abi" \
+         DOCDIR="$work/installdoc" \
+         GMP_INCDIR="$include/$abi" GMP_LIBDIR="$lib/$abi" \
+      && make \
+      && make check \
+      && make install
+    ) && break
+  done
+done
+
+okabi \
+| while read abi
+do
+  [ x"$focus" = x"all" -o x"$focus" = x"used" -o x"$focus" = x"keccak" ] || continue
+  echo "=== `date` === building keccak for $abi"
+  mkdir -p "$lib/$abi"
+  mkdir -p "$include/$abi"
+  okc-$abi | head -1 \
+  | while read c copts
+  do
+    for keccaktarget in \
+      AVR8 \
+      ARMv8A ARMv7A ARMv7M ARMv6M \
+      KnightsLanding Haswell Bulldozer SandyBridge Nehalem \
+      asmX86-64shdl asmX86-64 \
+      generic64 generic32 reference reference32bits compact
+    do
+      [ -s "$lib/$abi/libkeccak.a" ] && continue
+      echo "=== `date` === trying CC=$c CFLAGS=$copts TARGET=$keccaktarget"
+      rm -rf "$work"
+      mkdir -p "$work"
+      cp -pr k/* "$work"
+      ( cd "$work" \
+        && env CC="$c" CFLAGS="$copts" make $keccaktarget/libkeccak.a \
+        && mkdir -p "$include/$abi/libkeccak.a.headers" \
+        && cp bin/$keccaktarget/libkeccak.a.headers/* "$include/$abi/libkeccak.a.headers" \
+        && cp bin/$keccaktarget/libkeccak.a "$lib/$abi/libkeccak.a" \
+        && chmod 644 "$lib/$abi/libkeccak.a"
+      ) && break
+    done
+  done
+done
+
+okabi \
+| while read abi
+do
   [ x"$focus" = x"all" -o x"$focus" = x"used" -o x"$focus" = x"cryptopp" ] || continue
   echo "=== `date` === building cryptopp for $abi"
   mkdir -p "$lib/$abi"
@@ -235,6 +295,8 @@ do
       libs="$lib/$abi/kernelrandombytes.o $libs"
       [ -f "$lib/$abi/libgmp.a" ] && libs="$lib/$abi/libgmp.a $libs"
       [ -f "$lib/$abi/libgmpxx.a" ] && libs="$lib/$abi/libgmpxx.a $libs"
+      [ -f "$lib/$abi/libntl.a" ] && libs="$lib/$abi/libntl.a $libs"
+      [ -f "$lib/$abi/libkeccak.a" ] && libs="$lib/$abi/libkeccak.a $libs"
       [ -f "$lib/$abi/libcryptopp.a" ] && libs="$lib/$abi/libcryptopp.a $libs"
       [ -f "$lib/$abi/lib${project}.a" ] && libs="$lib/$abi/lib${project}.a $libs"
 
@@ -514,6 +576,8 @@ do
       libs="$lib/$abi/kernelrandombytes.o $libs"
       [ -f "$lib/$abi/libgmp.a" ] && libs="$lib/$abi/libgmp.a $libs"
       [ -f "$lib/$abi/libgmpxx.a" ] && libs="$lib/$abi/libgmpxx.a $libs"
+      [ -f "$lib/$abi/libntl.a" ] && libs="$lib/$abi/libntl.a $libs"
+      [ -f "$lib/$abi/libkeccak.a" ] && libs="$lib/$abi/libkeccak.a $libs"
       [ -f "$lib/$abi/libcryptopp.a" ] && libs="$lib/$abi/libcryptopp.a $libs"
       [ -f "$lib/$abi/lib${project}.a" ] && libs="$lib/$abi/lib${project}.a $libs"
 

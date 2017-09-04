@@ -11,8 +11,8 @@
 
 #include "crypto_encrypt.h"
 
-static unsigned char nonce[crypto_aead_NPUBBYTES];
-static unsigned char ad[1];
+static const unsigned char nonce[crypto_aead_NPUBBYTES];
+static const unsigned char ad[1];
 
 int crypto_encrypt_open(
   unsigned char *m,unsigned long long *mlen,
