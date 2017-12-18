@@ -117,7 +117,7 @@ void rq_roundencode(unsigned char *c,const modq *f)
     c += 4;
   }
   {
-    crypto_int32 f0, f1, f2;
+    crypto_int32 f0, f1;
     f0 = *f++;
     f1 = *f++;
     f0 += 1175805;

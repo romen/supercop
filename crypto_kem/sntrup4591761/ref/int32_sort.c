@@ -1,3 +1,5 @@
+/* See https://ntruprime.cr.yp.to/software.html for detailed documentation. */
+
 #include "int32_sort.h"
 #include "crypto_uint32.h"
 
