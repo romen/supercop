@@ -1,12 +1,11 @@
+/*
+  This file is for functions related to 256-bit vectors
+  including functions for bitsliced field operations
+*/
+
 #include "vec256.h"
 
-extern void vec256_mul_asm(vec256 *, vec256 *, const vec256 *);
-
-void vec256_mul(vec256 *h, vec256 *f, const vec256 *g)
-{
-	vec256_mul_asm(h, f, g);
-}
-
+/* bitsliced field squarings */
 void vec256_sq(vec256 * out, vec256 * in)
 {
 	int i;
@@ -38,6 +37,7 @@ void vec256_sq(vec256 * out, vec256 * in)
 		out[i] = result[i];
 }
 
+/* bitsliced field inverses */
 void vec256_inv(vec256 * out, vec256 * in)
 {
 	vec256 tmp_11[ GFBITS ];

@@ -1,6 +1,12 @@
+/* 
+  This file is for functions required for generating the control bits of the Benes network w.r.t. a random permutation
+  see the Lev-Pippenger-Valiant paper https://www.computer.org/csdl/trans/tc/1981/02/06312171.pdf
+*/
+
 #include "controlbits.h"
 
 #include "randombytes.h"
+#include "crypto_sort_uint32.h"
 #include "params.h"
 
 #include <stdint.h>
@@ -17,12 +23,10 @@ static bit is_smaller(uint32_t a, uint32_t b)
   return ret;
 }
 
-static bit is_smaller_64b(uint64_t a, uint64_t b)
+static bit is_smaller_63b(uint64_t a, uint64_t b)
 {
   uint64_t ret = 0;
 
-  a >>= 1; 
-  b >>= 1;
   ret = a - b;
   ret >>= 63;
 
@@ -43,14 +47,13 @@ static void cswap(uint32_t *x,uint32_t *y,bit swap)
   *y ^= d;
 }
 
-static void cswap_64b(uint64_t *x,uint64_t *y,bit swap)
+static void cswap_63b(uint64_t *x,uint64_t *y,bit swap)
 {
   uint64_t m;
   uint64_t d;
-  uint64_t z = 0;
 
-  z -= swap ;
-  m = z;
+  m = swap; 
+  m = 0 - m;
 
   d = (*x ^ *y);
   d &= m;
@@ -61,48 +64,27 @@ static void cswap_64b(uint64_t *x,uint64_t *y,bit swap)
 /* output x = min(input x,input y) */
 /* output y = max(input x,input y) */
 
-static void minmax(uint32_t *x, uint32_t *y)
+static void minmax_63b(uint64_t *x, uint64_t *y)
 {
   bit m;
 
-  m = is_smaller(*y, *x);
-  cswap(x, y, m);
-}
-
-static void minmax_64b(uint64_t *x, uint64_t *y)
-{
-  bit m;
-
-  m = is_smaller_64b(*y, *x);
-  cswap_64b(x, y, m);
+  m = is_smaller_63b(*y, *x);
+  cswap_63b(x, y, m);
 }
 
 /* merge first half of x[0],x[step],...,x[(2*n-1)*step] with second half */
 /* requires n to be a power of 2 */
 
-static void merge(int n,uint32_t x[n],int step)
+static void merge_63b(int n,uint64_t x[n],int step)
 {
   int i;
   if (n == 1)
-    minmax(&x[0],&x[step]);
+    minmax_63b(&x[0],&x[step]);
   else {
-    merge(n / 2,x,step * 2);
-    merge(n / 2,x + step,step * 2);
+    merge_63b(n / 2,x,step * 2);
+    merge_63b(n / 2,x + step,step * 2);
     for (i = 1;i < 2*n-1;i += 2)
-      minmax(&x[i * step],&x[(i + 1) * step]);
-  }
-}
-
-static void merge_64b(int n,uint64_t x[n],int step)
-{
-  int i;
-  if (n == 1)
-    minmax_64b(&x[0],&x[step]);
-  else {
-    merge_64b(n / 2,x,step * 2);
-    merge_64b(n / 2,x + step,step * 2);
-    for (i = 1;i < 2*n-1;i += 2)
-      minmax_64b(&x[i * step],&x[(i + 1) * step]);
+      minmax_63b(&x[i * step],&x[(i + 1) * step]);
   }
 }
 
@@ -111,18 +93,15 @@ static void merge_64b(int n,uint64_t x[n],int step)
 
 static void sort(int n, uint32_t x[n])
 {
-  if (n <= 1) return;
-  sort(n/2,x);
-  sort(n/2,x + n/2);
-  merge(n/2,x,1);
+  crypto_sort_uint32(x, n);
 }
 
-static void sort_64b(int n, uint64_t x[n])
+void sort_63b(int n, uint64_t x[n])
 {
   if (n <= 1) return;
-  sort_64b(n/2,x);
-  sort_64b(n/2,x + n/2);
-  merge_64b(n/2,x,1);
+  sort_63b(n/2,x);
+  sort_63b(n/2,x + n/2);
+  merge_63b(n/2,x,1);
 }
 
 /* y[pi[i]] = x[i] */
@@ -240,44 +219,12 @@ static void controlbitsfrompermutation(int w, int n, int step, int off, unsigned
     controlbitsfrompermutation(w - 1, n / 2, step * 2, off + step * (n/2 + k), c, subpi[k]);
 }
 
-static void perm_gen(uint32_t *out)
+/* input: pi, a permutation*/
+/* output: out, control bits w.r.t. pi */
+void controlbits(unsigned char * out, uint32_t * pi)
 {
-	int i, j, rep;
-
-	uint64_t list[ 1 << GFBITS ];
-	
-	while(1)
-	{
-		randombytes((unsigned char *) list, sizeof(list));
-
-		for (i = 0; i < (1 << GFBITS); i++)
-		{
-			list[i] <<= GFBITS;
-			list[i] |= i;
-		}
-
-		rep = 0;
-		for (i = 1; i < (1 << GFBITS); i++)
-			for (j = 0; j < i; j++)
-				if ((list[j] >> GFBITS) == (list[i] >> GFBITS))
-					rep = 1;
-
-		if (rep == 0) break;
-	}
-
-	sort_64b(1 << GFBITS, list);
-
-	for (i = 0; i < (1 << GFBITS); i++)
-		out[i] = list[i] & GFMASK;
-}
-
-void controlbits(unsigned char * out)
-{
-	int i;
-	uint32_t pi[ (1 << GFBITS) ];
+	unsigned int i;
 	unsigned char c[ (2*GFBITS - 1) * (1 << GFBITS) / 16 ];
-
-	perm_gen(pi);
 
 	for (i = 0; i < sizeof(c); i++)
 		c[i] = 0;

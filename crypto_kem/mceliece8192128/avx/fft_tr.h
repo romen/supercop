@@ -1,3 +1,7 @@
+/*
+  This file is for transpose of the Gao-Mateer FFT
+*/
+
 #ifndef FFT_TR_H
 #define FFT_TR_H
 

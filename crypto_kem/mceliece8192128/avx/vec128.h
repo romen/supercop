@@ -1,3 +1,8 @@
+/*
+  This file is for functions related to 128-bit vectors
+  including functions for bitsliced field operations
+*/
+
 #ifndef VEC128_H
 #define VEC128_H
 
@@ -96,15 +101,13 @@ static inline vec128 vec128_or_reduce(vec128 * a)
 	return ret;
 }
 
-void vec128_mul(vec128 *, vec128 *, vec128 *);
-void vec128_sq(vec128 *, vec128 *);
-void vec128_inv(vec128 *, vec128 *);
+extern void vec128_mul_asm(vec128 *, vec128 *, vec128 *, int);
 
-typedef union
+/* bitsliced field multiplications */
+static inline void vec128_mul(vec128 *h, vec128 *f, vec128 *g)
 {
-	uint64_t s[2];
-	vec128 v;
-} u128;
+        vec128_mul_asm(h, f, g, 16);
+}
 
 #endif
 

@@ -1,13 +1,11 @@
+/*
+  This file is for functions related to 128-bit vectors
+  including functions for bitsliced field operations
+*/
+
 #include "vec128.h"
-//#include <immintrin.h>
 
-extern void vec128_mul_asm(vec128 *, vec128 *, vec128 *);
-
-void vec128_mul(vec128 *h, vec128 *f, vec128 *g)
-{
-	vec128_mul_asm(h, f, g);
-}
-
+/* bitsliced field squarings */
 void vec128_sq(vec128 * out, vec128 * in)
 {
 	int i;
@@ -39,6 +37,7 @@ void vec128_sq(vec128 * out, vec128 * in)
 		out[i] = result[i];
 }
 
+/* bitsliced field inverses */
 void vec128_inv(vec128 * out, vec128 * in)
 {
 	vec128 tmp_11[ GFBITS ];

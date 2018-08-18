@@ -1,3 +1,7 @@
+/*
+  This file is for the Gao-Mateer FFT
+*/
+
 #ifndef FFT_H
 #define FFT_H
 
