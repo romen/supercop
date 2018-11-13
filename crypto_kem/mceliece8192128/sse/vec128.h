@@ -23,10 +23,7 @@ static inline vec128 vec128_setzero()
 	return _mm_setzero_si128();
 }
 
-static inline uint64_t vec128_extract(vec128 a, int i) 
-{
-	return _mm_extract_epi64(a, i);
-}
+#define vec128_extract(a, i) _mm_extract_epi64(a, i)
 
 static inline int vec128_testz(vec128 a) 
 {
@@ -48,15 +45,8 @@ static inline vec128 vec128_or(vec128 a, vec128 b)
 	return _mm_or_si128(a, b);
 }
 
-static inline vec128 vec128_sll_2x(vec128 a, int s) 
-{
-	return _mm_slli_epi64(a, s);
-}
-
-static inline vec128 vec128_srl_2x(vec128 a, int s) 
-{
-	return _mm_srli_epi64(a, s);
-}
+#define vec128_sll_2x(a, s) _mm_slli_epi64(a, s)
+#define vec128_srl_2x(a, s) _mm_srli_epi64(a, s)
 
 static inline vec128 vec128_set2x(uint64_t a0, uint64_t a1)
 {

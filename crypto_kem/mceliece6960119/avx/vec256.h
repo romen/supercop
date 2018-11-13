@@ -28,11 +28,7 @@ static inline vec256 vec256_set4x(uint64_t a0, uint64_t a1, uint64_t a2, uint64_
 }
 
 #define vec256_extract2x(a,i) ((vec128) _mm256_extractf128_si256((vec256) (a),(i)))
-
-static inline uint64_t vec256_extract(vec256 a, int i) 
-{
-	return _mm256_extract_epi64(a, i);
-}
+#define vec256_extract(a,i) ((uint64_t) _mm256_extract_epi64((vec256) (a),(i)))
 
 static inline int vec256_testz(vec256 a) 
 {
@@ -54,15 +50,8 @@ static inline vec256 vec256_or(vec256 a, vec256 b)
 	return _mm256_or_si256(a, b);
 }
 
-static inline vec256 vec256_sll_4x(vec256 a, int s) 
-{
-	return _mm256_slli_epi64(a, s);
-}
-
-static inline vec256 vec256_srl_4x(vec256 a, int s) 
-{
-	return _mm256_srli_epi64(a, s);
-}
+#define vec256_sll_4x(a, s) _mm256_slli_epi64(a, s)
+#define vec256_srl_4x(a, s) _mm256_srli_epi64(a, s)
 
 static inline vec256 vec256_unpack_low(vec256 a, vec256 b)
 {
