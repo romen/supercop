@@ -1,1 +1,1 @@
-../../dilithium2/ref/sign.h
+../../dilithium2/avx2/sign.h

@@ -1,1 +1,1 @@
-../../dilithium2/ref/reduce.h
+../../dilithium2/avx2/reduce.h

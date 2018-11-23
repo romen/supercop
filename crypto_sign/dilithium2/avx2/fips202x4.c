@@ -3,11 +3,12 @@
 #include "params.h"
 #include "fips202x4.h"
 #include "fips202.h"
-#include "KeccakP-1600-times4-SnP.h"
-
 
 #define NROUNDS 24
 #define ROL(a, offset) ((a << offset) ^ (a >> (64-offset)))
+
+#define DBENCH_START()
+#define DBENCH_STOP(t)
 
 static uint64_t load64(const unsigned char *x) {
   unsigned int i;
@@ -26,6 +27,8 @@ static void store64(unsigned char *x, uint64_t u) {
     x[i] = u >> 8*i;
 }
 
+/* Use implementation from the Keccak Code Package */
+extern void KeccakP1600times4_PermuteAll_24rounds(__m256i *s);
 #define KeccakF1600_StatePermute4x KeccakP1600times4_PermuteAll_24rounds
 
 static void keccak_absorb4x(__m256i *s,
@@ -43,6 +46,7 @@ static void keccak_absorb4x(__m256i *s,
   unsigned char t2[200];
   unsigned char t3[200];
   uint64_t *ss = (uint64_t *)s;
+  DBENCH_START();
 
   for(i = 0; i < 25; ++i)
     s[i] = _mm256_xor_si256(s[i], s[i]);
@@ -54,7 +58,7 @@ static void keccak_absorb4x(__m256i *s,
       ss[4*i + 2] ^= load64(m2 + 8*i);
       ss[4*i + 3] ^= load64(m3 + 8*i);
     }
-    
+
     KeccakF1600_StatePermute4x(s);
     mlen -= r;
     m0 += r;
@@ -92,6 +96,8 @@ static void keccak_absorb4x(__m256i *s,
     ss[4*i + 2] ^= load64(t2 + 8*i);
     ss[4*i + 3] ^= load64(t3 + 8*i);
   }
+
+  DBENCH_STOP(*tshake);
 }
 
 
@@ -105,6 +111,7 @@ static void keccak_squeezeblocks4x(unsigned char *h0,
 {
   unsigned int i;
   uint64_t *ss = (uint64_t *)s;
+  DBENCH_START();
 
   while(nblocks > 0) {
     KeccakF1600_StatePermute4x(s);
@@ -121,6 +128,8 @@ static void keccak_squeezeblocks4x(unsigned char *h0,
     h3 += r;
     --nblocks;
   }
+
+  DBENCH_STOP(*tshake);
 }
 
 void shake128_absorb4x(__m256i *s,
@@ -167,7 +176,7 @@ void shake128_4x(unsigned char *h0,
                  unsigned char *h1,
                  unsigned char *h2,
                  unsigned char *h3,
-                 unsigned long long hlen, 
+                 unsigned long long hlen,
                  const unsigned char *m0,
                  const unsigned char *m1,
                  const unsigned char *m2,
@@ -203,7 +212,7 @@ void shake256_4x(unsigned char *h0,
                  unsigned char *h1,
                  unsigned char *h2,
                  unsigned char *h3,
-                 unsigned long long hlen, 
+                 unsigned long long hlen,
                  const unsigned char *m0,
                  const unsigned char *m1,
                  const unsigned char *m2,

@@ -819,7 +819,7 @@ mslc_pmuladd:
   vmovdqu    ymm5, PERM0246
   vmovdqu    ymm6, MASK12x8 
   xor        rax, rax
-  movq       r11, 4
+  mov        r11, 4
 lazo2:
   vpmovsxdq  ymm0, XMMWORD PTR [reg_p1+4*rax]   // a
   vpmovsxdq  ymm1, XMMWORD PTR [reg_p2+4*rax]   // b
@@ -860,7 +860,7 @@ mslc_pmul:
   vmovdqu    ymm5, PERM0246
   vmovdqu    ymm6, MASK12x8 
   xor        rax, rax
-  movq       r11, 4
+  mov        r11, 4
 lazo3:
   vpmovsxdq  ymm0, XMMWORD PTR [reg_p1+4*rax]   // a
   vpmovsxdq  ymm1, XMMWORD PTR [reg_p2+4*rax]   // b
@@ -899,7 +899,7 @@ mslc_two_reduce12289:
   vmovdqu    ymm6, MASK12x8 
   vmovdqu    ymm7, PRIME8x
   xor        rax, rax
-  movq       r11, 8
+  mov        r11, 8
 lazo4:
   vmovdqu    ymm0, YMMWORD PTR [reg_p1+4*rax]   // a
 

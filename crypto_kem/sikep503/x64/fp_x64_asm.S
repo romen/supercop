@@ -57,20 +57,20 @@ fpadd503_asm:
   adc    r14, [reg_p2+48] 
   adc    r15, [reg_p2+56]
 
-  movq   rcx, p503x2_0
+  mov    rcx, p503x2_0
   sub    r8, rcx
-  movq   rcx, p503x2_1
+  mov    rcx, p503x2_1
   sbb    r9, rcx
   sbb    r10, rcx
-  movq   rcx, p503x2_3
+  mov    rcx, p503x2_3
   sbb    r11, rcx
-  movq   rcx, p503x2_4
+  mov    rcx, p503x2_4
   sbb    r12, rcx
-  movq   rcx, p503x2_5
+  mov    rcx, p503x2_5
   sbb    r13, rcx
-  movq   rcx, p503x2_6
+  mov    rcx, p503x2_6
   sbb    r14, rcx
-  movq   rcx, p503x2_7
+  mov    rcx, p503x2_7
   sbb    r15, rcx
   sbb    rax, 0
   
@@ -78,7 +78,7 @@ fpadd503_asm:
   and    rdi, rax
   mov    rsi, p503x2_1
   and    rsi, rax
-  movq   rcx, p503x2_3
+  mov    rcx, p503x2_3
   and    rcx, rax
   
   add    r8, rdi  
@@ -91,13 +91,13 @@ fpadd503_asm:
   mov    [reg_p3+24], r11 
   setc   cl
 
-  movq   r8, p503x2_4
+  mov    r8, p503x2_4
   and    r8, rax
-  movq   r9, p503x2_5
+  mov    r9, p503x2_5
   and    r9, rax
-  movq   r10, p503x2_6
+  mov    r10, p503x2_6
   and    r10, rax
-  movq   r11, p503x2_7
+  mov    r11, p503x2_7
   and    r11, rax
   
   bt     rcx, 0
@@ -151,7 +151,7 @@ fpsub503_asm:
   and    rdi, rax
   mov    rsi, p503x2_1
   and    rsi, rax
-  movq   rcx, p503x2_3
+  mov    rcx, p503x2_3
   and    rcx, rax
   
   add    r8, rdi  
@@ -164,13 +164,13 @@ fpsub503_asm:
   mov    [reg_p3+24], r11 
   setc   cl
 
-  movq   r8, p503x2_4
+  mov    r8, p503x2_4
   and    r8, rax
-  movq   r9, p503x2_5
+  mov    r9, p503x2_5
   and    r9, rax
-  movq   r10, p503x2_6
+  mov    r10, p503x2_6
   and    r10, rax
-  movq   r11, p503x2_7
+  mov    r11, p503x2_7
   and    r11, rax
   
   bt     rcx, 0
@@ -989,7 +989,7 @@ rdc503_asm:
   push   r15 
 
   mov    r11, [reg_p1]
-  movq   rax, p503p1_3 
+  mov    rax, p503p1_3 
   mul    r11
   xor    r8, r8
   add    rax, [reg_p1+24]
@@ -997,14 +997,14 @@ rdc503_asm:
   adc    r8, rdx
   
   xor    r9, r9
-  movq   rax, p503p1_4 
+  mov    rax, p503p1_4 
   mul    r11
   xor    r10, r10
   add    r8, rax
   adc    r9, rdx
 
   mov    r12, [reg_p1+8]
-  movq   rax, p503p1_3 
+  mov    rax, p503p1_3 
   mul    r12
   add    r8, rax
   adc    r9, rdx
@@ -1015,20 +1015,20 @@ rdc503_asm:
   adc    r10, 0
   
   xor    r8, r8
-  movq   rax, p503p1_5 
+  mov    rax, p503p1_5 
   mul    r11
   add    r9, rax
   adc    r10, rdx
   adc    r8, 0
   
-  movq   rax, p503p1_4 
+  mov    rax, p503p1_4 
   mul    r12
   add    r9, rax
   adc    r10, rdx
   adc    r8, 0
   
   mov    r13, [reg_p1+16]
-  movq   rax, p503p1_3 
+  mov    rax, p503p1_3 
   mul    r13
   add    r9, rax
   adc    r10, rdx
@@ -1039,26 +1039,26 @@ rdc503_asm:
   adc    r8, 0
   
   xor    r9, r9
-  movq   rax, p503p1_6 
+  mov    rax, p503p1_6 
   mul    r11
   add    r10, rax
   adc    r8, rdx
   adc    r9, 0
   
-  movq   rax, p503p1_5 
+  mov    rax, p503p1_5 
   mul    r12
   add    r10, rax
   adc    r8, rdx
   adc    r9, 0
   
-  movq   rax, p503p1_4
+  mov    rax, p503p1_4
   mul    r13
   add    r10, rax
   adc    r8, rdx
   adc    r9, 0
   
   mov    r14, [reg_p2+24]
-  movq   rax, p503p1_3 
+  mov    rax, p503p1_3 
   mul    r14
   add    r10, rax
   adc    r8, rdx
@@ -1069,32 +1069,32 @@ rdc503_asm:
   adc    r9, 0
   
   xor    r10, r10
-  movq   rax, p503p1_7 
+  mov    rax, p503p1_7 
   mul    r11
   add    r8, rax
   adc    r9, rdx
   adc    r10, 0
   
-  movq   rax, p503p1_6 
+  mov    rax, p503p1_6 
   mul    r12
   add    r8, rax
   adc    r9, rdx
   adc    r10, 0
   
-  movq   rax, p503p1_5 
+  mov    rax, p503p1_5 
   mul    r13
   add    r8, rax
   adc    r9, rdx
   adc    r10, 0
   
-  movq   rax, p503p1_4 
+  mov    rax, p503p1_4 
   mul    r14
   add    r8, rax
   adc    r9, rdx
   adc    r10, 0
   
   mov    r15, [reg_p2+32]
-  movq   rax, p503p1_3 
+  mov    rax, p503p1_3 
   mul    r15
   add    r8, rax
   adc    r9, rdx
@@ -1105,32 +1105,32 @@ rdc503_asm:
   adc    r10, 0
   
   xor    r8, r8
-  movq   rax, p503p1_7 
+  mov    rax, p503p1_7 
   mul    r12
   add    r9, rax
   adc    r10, rdx
   adc    r8, 0
   
-  movq   rax, p503p1_6 
+  mov    rax, p503p1_6 
   mul    r13
   add    r9, rax
   adc    r10, rdx
   adc    r8, 0
   
-  movq   rax, p503p1_5 
+  mov    rax, p503p1_5 
   mul    r14
   add    r9, rax
   adc    r10, rdx
   adc    r8, 0
   
-  movq   rax, p503p1_4 
+  mov    rax, p503p1_4 
   mul    r15
   add    r9, rax
   adc    r10, rdx
   adc    r8, 0
   
   mov    rcx, [reg_p2+40]
-  movq   rax, p503p1_3 
+  mov    rax, p503p1_3 
   mul    rcx
   add    r9, rax
   adc    r10, rdx
@@ -1141,32 +1141,32 @@ rdc503_asm:
   adc    r8, 0
   
   xor    r9, r9
-  movq   rax, p503p1_7 
+  mov    rax, p503p1_7 
   mul    r13
   add    r10, rax
   adc    r8, rdx
   adc    r9, 0
 
-  movq   rax, p503p1_6 
+  mov    rax, p503p1_6 
   mul    r14
   add    r10, rax
   adc    r8, rdx
   adc    r9, 0
 
-  movq   rax, p503p1_5
+  mov    rax, p503p1_5
   mul    r15
   add    r10, rax
   adc    r8, rdx
   adc    r9, 0
 
-  movq   rax, p503p1_4
+  mov    rax, p503p1_4
   mul    rcx
   add    r10, rax
   adc    r8, rdx
   adc    r9, 0
   
   mov    r13, [reg_p2+48]
-  movq   rax, p503p1_3
+  mov    rax, p503p1_3
   mul    r13
   add    r10, rax
   adc    r8, rdx
@@ -1177,32 +1177,32 @@ rdc503_asm:
   adc    r9, 0
   
   xor    r10, r10
-  movq   rax, p503p1_7 
+  mov    rax, p503p1_7 
   mul    r14
   add    r8, rax
   adc    r9, rdx
   adc    r10, 0
   
-  movq   rax, p503p1_6 
+  mov    rax, p503p1_6 
   mul    r15
   add    r8, rax
   adc    r9, rdx
   adc    r10, 0
   
-  movq   rax, p503p1_5 
+  mov    rax, p503p1_5 
   mul    rcx
   add    r8, rax
   adc    r9, rdx
   adc    r10, 0
   
-  movq   rax, p503p1_4 
+  mov    rax, p503p1_4 
   mul    r13
   add    r8, rax
   adc    r9, rdx
   adc    r10, 0
   
   mov    r14, [reg_p2+56]
-  movq   rax, p503p1_3 
+  mov    rax, p503p1_3 
   mul    r14
   add    r8, rax
   adc    r9, rdx
@@ -1213,25 +1213,25 @@ rdc503_asm:
   adc    r10, 0
   
   xor    r8, r8
-  movq   rax, p503p1_7 
+  mov    rax, p503p1_7 
   mul    r15
   add    r9, rax
   adc    r10, rdx
   adc    r8, 0
   
-  movq   rax, p503p1_6 
+  mov    rax, p503p1_6 
   mul    rcx
   add    r9, rax
   adc    r10, rdx
   adc    r8, 0
   
-  movq   rax, p503p1_5 
+  mov    rax, p503p1_5 
   mul    r13
   add    r9, rax
   adc    r10, rdx
   adc    r8, 0
   
-  movq   rax, p503p1_4 
+  mov    rax, p503p1_4 
   mul    r14
   add    r9, rax
   adc    r10, rdx
@@ -1242,19 +1242,19 @@ rdc503_asm:
   adc    r8, 0
   
   xor    r9, r9
-  movq   rax, p503p1_7 
+  mov    rax, p503p1_7 
   mul    rcx
   add    r10, rax
   adc    r8, rdx
   adc    r9, 0
   
-  movq   rax, p503p1_6 
+  mov    rax, p503p1_6 
   mul    r13
   add    r10, rax
   adc    r8, rdx
   adc    r9, 0
   
-  movq   rax, p503p1_5 
+  mov    rax, p503p1_5 
   mul    r14
   add    r10, rax
   adc    r8, rdx
@@ -1265,13 +1265,13 @@ rdc503_asm:
   adc    r9, 0
   
   xor    r10, r10
-  movq   rax, p503p1_7 
+  mov    rax, p503p1_7 
   mul    r13
   add    r8, rax
   adc    r9, rdx
   adc    r10, 0
 
-  movq   rax, p503p1_6 
+  mov    rax, p503p1_6 
   mul    r14
   add    r8, rax
   adc    r9, rdx
@@ -1281,7 +1281,7 @@ rdc503_asm:
   adc    r9, 0
   adc    r10, 0
   
-  movq   rax, p503p1_7 
+  mov    rax, p503p1_7 
   mul    r14
   add    r9, rax
   adc    r10, rdx
