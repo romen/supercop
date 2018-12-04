@@ -42,4 +42,5 @@
 #define CRYPTO_CIPHERTEXTBYTES sizeof(ct_t)
 #define CRYPTO_BYTES           sizeof(ss_t)
 #define CRYPTO_VERSION "BIKE v1.0 ref 06/29/2018"
+
 #endif

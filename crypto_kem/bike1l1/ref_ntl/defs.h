@@ -45,9 +45,9 @@
 //#define BIKE3
 
 // UNCOMMENT TO SELECT THE NIST SECURITY LEVEL 1, 3 OR 5:
-//#define PARAM64 // NIST LEVEL 1
+#define PARAM64 // NIST LEVEL 1
 //#define PARAM96 // NIST LEVEL 3
-#define PARAM128 // NIST LEVEL 5
+//#define PARAM128 // NIST LEVEL 5
 
 // BIKE shared-secret size:
 #define ELL_K_BITS  256ULL
