@@ -290,7 +290,7 @@ void MatrixVectorMul(polyvec *a, uint16_t skpv[SABER_K][SABER_N], uint16_t res[S
 	if(transpose==1){
 		for(i=0;i<SABER_K;i++){
 			for(j=0;j<SABER_K;j++){
-				pol_mul((uint16_t *)&a[j].vec[i], skpv[j], acc, SABER_Q, SABER_N,0);			
+				pol_mul((uint16_t *)&a[j].vec[i], skpv[j], acc, SABER_Q, SABER_N);			
 
 				for(k=0;k<SABER_N;k++){
 					res[i][k]=res[i][k]+acc[k];
@@ -305,7 +305,7 @@ void MatrixVectorMul(polyvec *a, uint16_t skpv[SABER_K][SABER_N], uint16_t res[S
 
 		for(i=0;i<SABER_K;i++){
 			for(j=0;j<SABER_K;j++){
-				pol_mul((uint16_t *)&a[i].vec[j], skpv[j], acc, SABER_Q, SABER_N,0);			
+				pol_mul((uint16_t *)&a[i].vec[j], skpv[j], acc, SABER_Q, SABER_N);			
 				for(k=0;k<SABER_N;k++){
 					res[i][k]=res[i][k]+acc[k];
 					res[i][k]=res[i][k]&mod; //reduction
@@ -341,7 +341,7 @@ void VectorMul(uint16_t pkcl[SABER_K][SABER_N],uint16_t skpv[SABER_K][SABER_N],u
 
 	// vector-vector scalar multiplication with mod p
 	for(j=0;j<SABER_K;j++){
-		pol_mul(pkcl[j], skpv[j], acc , SABER_P, SABER_N,0);
+		pol_mul(pkcl[j], skpv[j], acc , SABER_P, SABER_N);
 
 			for(k=0;k<SABER_N;k++){
 				res[k]=res[k]+acc[k];

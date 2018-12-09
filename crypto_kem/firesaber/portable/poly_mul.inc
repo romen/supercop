@@ -3,7 +3,11 @@
 #include<stdint.h>
 #include "poly_mul.h"
 
-int32_t glob_i=0;
+#define SCHB_N 16
+
+#define N_RES (SABER_N << 1)
+#define N_SB (SABER_N >> 2)
+#define N_SB_RES (2*N_SB-1)
 
 void print_poly2(int16_t *a, int64_t n, uint64_t p){
 
@@ -22,360 +26,229 @@ void print_poly2(int16_t *a, int64_t n, uint64_t p){
 	printf("\n-----------------------\n");
 }
 
-void pol_mul(uint16_t* a, uint16_t* b, uint16_t* res, uint16_t p, uint32_t n,uint32_t start)
+void pol_mul(uint16_t* a, uint16_t* b, uint16_t* res, uint16_t p, uint32_t n)
 
 { 
 	// Polynomial multiplication using the schoolbook method, c[x] = a[x]*b[x] 
 	// SECURITY NOTE: TO BE USED FOR TESTING ONLY.  
 
 	uint32_t i;
-	uint32_t j,  mask = 2*n - 1;
-
 
 //-------------------normal multiplication-----------------
 
-	
-	
-	uint16_t *c;
-	c=(uint16_t *)malloc((mask+1)*sizeof(uint16_t));
-	for (i = 0; i < mask+1; i++) c[i] = 0;
+	uint16_t c[512];
 
-	for (i = start; i < start+n; i++) {
-		for (j = start; j < start+n; j++) {
-			c[i+j-2*start]=( c[i+j-2*start] + (a[i] * b[j]) )&(p-1);
+	for (i = 0; i < 512; i++) c[i] = 0;
+
+	toom_cook_4way(a, b, c);
+
+	//---------------reduction-------
+	for(i=n;i<2*n;i++){
+		res[i-n]=(c[i-n]-c[i])&(p-1);
+	}
+	
+
+}
+void karatsuba_simple(uint16_t* a_1, uint16_t* b_1, uint16_t* result_final){//uses 10 registers
+
+	uint16_t N=64;
+	uint16_t d01[N/2-1];
+	uint16_t d0123[N/2-1];
+	uint16_t d23[N/2-1];
+	uint16_t result_d01[N-1];	
+
+	int32_t i,j;
+
+	memset(result_d01,0,(N-1)*sizeof(uint16_t));
+	memset(d01,0,(N/2-1)*sizeof(uint16_t));
+	memset(d0123,0,(N/2-1)*sizeof(uint16_t));
+	memset(d23,0,(N/2-1)*sizeof(uint16_t));
+	memset(result_final,0,(2*N-1)*sizeof(uint16_t));
+
+	uint16_t acc1,acc2,acc3,acc4,acc5,acc6,acc7,acc8,acc9,acc10;
+
+
+	for (i = 0; i < N/4; i++) {
+		acc1=a_1[i];//a0
+		acc2=a_1[i+N/4];//a1
+		acc3=a_1[i+2*N/4];//a2
+		acc4=a_1[i+3*N/4];//a3	
+		for (j = 0; j < N/4; j++) {
+
+			acc5=b_1[j];//b0
+			acc6=b_1[j+N/4];//b1
+
+			result_final[i+j+0*N/4]=result_final[i+j+0*N/4]+acc1*acc5;
+			result_final[i+j+2*N/4]=result_final[i+j+2*N/4]+acc2*acc6;
+
+			acc7=acc5+acc6;//b01
+			acc8=acc1+acc2;//a01
+			d01[i+j]=d01[i+j] + acc7*acc8;
+	//--------------------------------------------------------
+
+			acc7=b_1[j+2*N/4];//b2
+			acc8=b_1[j+3*N/4];//b3			
+			result_final[i+j+4*N/4]=result_final[i+j+4*N/4]+acc7*acc3;
+
+			result_final[i+j+6*N/4]=result_final[i+j+6*N/4]+acc8*acc4;
+
+			acc9=acc3+acc4;
+			acc10=acc7+acc8;
+			d23[i+j]=d23[i+j] + acc9*acc10;
+	//--------------------------------------------------------
+
+			acc5=acc5+acc7;//b02
+			acc7=acc1+acc3;//a02
+			result_d01[i+j+0*N/4]=result_d01[i+j+0*N/4]+acc5*acc7;
+
+			acc6=acc6+acc8;//b13
+			acc8=acc2+acc4;			
+			result_d01[i+j+ 2*N/4]=result_d01[i+j+ 2*N/4]+acc6*acc8;
+
+			acc5=acc5+acc6;
+			acc7=acc7+acc8;
+			d0123[i+j]=d0123[i+j] + acc5*acc7;
 		}
 	}
 
-	//---------------reduction-------
-	for(i=n;i<2*n-1;i++){
-		c[i-n]=(c[i-n]-c[i])&(p-1);
-	}
-	
-	c[n]=0; //256th coefficient=0;
-//----------------------copy result back----------------
+//------------------2nd last stage-------------------------
 
-	for(i=0; i<n; i++){
-            res[i] = c[i];
-	}
-		
-
-	free(c);
-
-}
-
-void toom_cook_4way(uint16_t* a1,uint16_t* b1, uint16_t* result, uint64_t p_mod, uint16_t n){
-
-	int16_t i;
-	int16_t small_len=SABER_N/4;
-	
-	
-	int16_t result_final[2*SABER_N];
-	uint64_t p_mod_or;	
-
-	p_mod_or=p_mod;
-	p_mod=p_mod*8;
-
-//----------------array declaration to hold smaller arrays--------------------
-
-	int16_t a[small_len],b[small_len];
-	int16_t th_a[small_len],t_h_a[small_len];
-	int16_t th_b[small_len],t_h_b[small_len];
-	int16_t temp1[2*small_len];
-
-//----------------array declaration to hold smaller arrays ends--------------------
-
-//----------------array declaration to hold results--------------------
-	int16_t w1[2*small_len],w2[2*small_len],w3[2*small_len],w4[2*small_len],w5[2*small_len],w6[2*small_len],w7[2*small_len];
-
-//----------------array declaration to hold results ends--------------------
-	//--------------------these data are created for place holding---------
-
-	int16_t a1_ph[small_len],b1_ph[small_len];
-	int16_t a2_ph[small_len],b2_ph[small_len];
-	int16_t a3_ph[small_len],b3_ph[small_len];
-	int16_t a4_ph[small_len],b4_ph[small_len];
-	int16_t a5_ph[small_len],b5_ph[small_len];
-	int16_t a6_ph[small_len],b6_ph[small_len];
-
-	//--------------------these data are created for place holding ends---------
-
-	int16_t inv3=43691;
-	int16_t inv9=36409;
-	int16_t inv15=61167;
-
-	int16_t int45=45;
-	int16_t int30=30;
-	int16_t int0=0;
-
-
-	//do the partial products
-	
-	//-------------------t0--------------------
-
-	//create a(0)*b(0)
-
-	for(i=0;i<small_len;i++){
-		a1_ph[i]=a1[i+0];
-		b1_ph[i]=b1[i+0];
+	for(i=0;i<N/2-1;i++){
+		d0123[i]=d0123[i]-result_d01[i+0*N/4]-result_d01[i+2*N/4];
+		d01[i]=d01[i]-result_final[i+0*N/4]-result_final[i+2*N/4];
+		d23[i]=d23[i]-result_final[i+4*N/4]-result_final[i+6*N/4];
 	}
 
-	//-------------------t0 ends------------------
-
-	//-------------------th and t_h. th <-a(1/2)*b(1/2). t_h <- a(-1/2)*b(-1/2) ---------------------
-	//create partial sum for th and t_h
-	
-	for(i=0;i<small_len;i++){//th_x contains 4*x[0]
-		th_a[i]= a1_ph[i]<<2;
-		th_b[i]= b1_ph[i]<<2;
-	
-	//th_x contains 4*x[0]+x[2]
-		th_a[i]= th_a[i]+a1[small_len*2+i];
-		th_b[i]= th_b[i]+b1[small_len*2+i];
-	
-	//th_x_avx contains 8*x[0]+2*x[2]
-		th_a[i]= th_a[i]<<1;
-		th_b[i]= th_b[i]<<1;
-	
-	//t_h_x_avx contains x[1]
-		t_h_a[i]= a1[small_len*1+i];
-		t_h_b[i]= b1[small_len*1+i];
-	
-	//t_h_x_avx contains 4*x[1]
-		t_h_a[i]= t_h_a[i]<<2;
-		t_h_b[i]= t_h_b[i]<<2;
-
-	//th_x_avx contains 4*x[1]+x[3]
-		t_h_a[i]= t_h_a[i]+a1[small_len*3+i];
-		t_h_b[i]= t_h_b[i]+b1[small_len*3+i];
+	for(i=0;i<N/2-1;i++){
+		result_d01[i+1*N/4]=result_d01[i+1*N/4]+d0123[i];
+		result_final[i+1*N/4]=result_final[i+1*N/4]+d01[i];
+		result_final[i+5*N/4]=result_final[i+5*N/4]+d23[i];
 	}
 
-	//create th
-
-	for(i=0;i<small_len;i++){
-		a2_ph[i]= th_a[i]+t_h_a[i];
-		b2_ph[i]= th_b[i]+t_h_b[i];
-	}
-
-	//pol_mul_avx(a_avx, b_avx, w5_avx, p_mod, small_len, 0);	
-
-	//create t_h
-
-	for(i=0;i<small_len;i++){
-		a3_ph[i]= th_a[i]-t_h_a[i];
-		b3_ph[i]= th_b[i]-t_h_b[i];
-	}
-
-	//pol_mul_avx(a_avx, b_avx, w6_avx, p_mod, small_len, 0);
-
-	//-------------------t1 and t_1. t1 <-a(1)*b(1). t_1 <- a(-1)*b(-1) ---------------------
-
-	//create partial sum for t_1 and t1
-	
-	for(i=0;i<small_len;i++){//th_x_avx contains x[2]+x[0]
-		th_a[i]= a1[small_len*2+i]+a1[small_len*0+i];
-		th_b[i]= b1[small_len*2+i]+b1[small_len*0+i];
-		
-		//th_x_avx contains x[3]+x[1]
-		t_h_a[i]= a1[small_len*3+i]+a1[small_len*1+i];
-		t_h_b[i]= b1[small_len*3+i]+b1[small_len*1+i];
-	}	
-	
-
-	//create t1
-	for(i=0;i<small_len;i++){// x[0]+x[1]+x[2]+x[3]
-		a4_ph[i]= th_a[i]+t_h_a[i];
-		b4_ph[i]= th_b[i]+t_h_b[i];
-	}
-
-	//pol_mul_avx(a_avx, b_avx, w3_avx, p_mod, small_len, 0);	
-
-	//create t_1
-	for(i=0;i<small_len;i++){//-x[3]+x[2]-x[1]+x[0]
-		a5_ph[i]= th_a[i]-t_h_a[i];
-		b5_ph[i]= th_b[i]-t_h_b[i];
-	}
-
-	//pol_mul_avx(a_avx, b_avx, w4_avx, p_mod, small_len, 0);	
-
-
-	//------------------t_inf------------------------------	
-	//create t_inf
-
-	for(i=0;i<small_len;i++){//x_avx contains x[3]
-		a6_ph[i]= a1[small_len*3+i];
-		b6_ph[i]= b1[small_len*3+i];
-	}	
-
-	//pol_mul_avx(a_avx, b_avx, w1_avx, p_mod, small_len, 0);
-
-	//-------------------t_inf ends----------------------
-	
-	//-------------------t2-------------------------
-	for(i=0;i<small_len;i++){// 2*x[3]
-		a[i]= a6_ph[i]+a1[small_len*3+i];
-		b[i]= b6_ph[i]+b1[small_len*3+i];
-
-		// 2*x[3]+x[2]
-		a[i]= a[i]+a1[small_len*2+i];
-		b[i]= b[i]+b1[small_len*2+i];
-		
-		// 4*x[3]+2*x[2]
-		a[i]= a[i]<<1;
-		b[i]= b[i]<<1;
-		
-		// 4*x[3]+2*x[2]+x[1]
-		a[i]= a[i]+a1[small_len*1+i];
-		b[i]= b[i]+b1[small_len*1+i];
-		
-		// 8*x[3]+4*x[2]+2*x[1]
-		a[i]= a[i]<<1;
-		b[i]= b[i]<<1;
-		
-		// 8*x[3]+8*x[2]+2*x[1]+x[0]
-		a[i]= a[i]+a1[small_len*0+i];
-		b[i]= b[i]+b1[small_len*0+i];
-	}
-
-	//-----first multiplication
-	pol_mul_sb(a1_ph, b1_ph, w7, p_mod, small_len, 0);
-	//-----second multiplication
-	pol_mul_sb(a2_ph, b2_ph, w5, p_mod, small_len, 0);
-	//-----Third multiplication
-	pol_mul_sb(a3_ph, b3_ph, w6, p_mod, small_len, 0);
-	//-----Fourth multilication
-	pol_mul_sb(a4_ph, b4_ph, w3, p_mod, small_len, 0);	
-	//-----Fifth Multiplication
-	pol_mul_sb(a5_ph, b5_ph, w4, p_mod, small_len, 0);	
-	//-----Sixth Multiplication
-	pol_mul_sb(a6_ph, b6_ph, w1, p_mod, small_len, 0);	
-	//-----Seventh Multiplication
-	pol_mul_sb(a, b, w2, p_mod, small_len, 0);
-
-
-	/*	--------------------------------------------
-		---------------Solution starts--------------
-		--------------------------------------------
-
-	*/
-	
-
-	for(i=0;i<2*small_len;i++){
-			
-		w2[i]= w2[i]+w5[i];//w2 <- w2+w5
-		w6[i]= w6[i]-w5[i];// w6 <- w6-w5
-		w4[i]= w4[i]-w3[i];// w4 <- w4-w3
-		
-		w5[i]= w5[i]-w1[i];// w5 <- w5-w1
-		temp1[i] = w7[i]<<6; //temp <- 64*w7
-		w5[i]= w5[i]-temp1[i];// w5 <- w5-64*w7
-
-		w4[i] = w4[i]>>1; //w4 <- w4/2
-		w3[i] = w3[i]+w4[i];//w3 <- w3+w4
-
-		temp1[i] = w5[i]<<1; //temp <- 2*w5
-		w5[i]= w6[i]+temp1[i];//w5 <- 2*w5+w6
-
-		temp1[i] = w3[i]<<6; //temp <- 64*w3
-		temp1[i] = w3[i]+temp1[i]; //temp <- 65*w3
-		w2[i]= w2[i]-temp1[i];// w2 <- w2-65*w3
-
-		w3[i]= w3[i]-w7[i];// w3 <- w3-w7
-		w3[i]= w3[i]-w1[i];// w3 <- w3-w1
-
-		temp1[i] = w3[i]*int45; //temp <- 45*w3
-		w2[i] = w2[i]+temp1[i]; //w2 <- w2+45*w3
-
-		temp1[i] = w3[i]<<3; //temp <- 8*w3
-		w5[i]= w5[i]-temp1[i];//w5 <- w5-8*w3
-
-		w5[i] = w5[i]*inv3; //w5 <- w5*1/3
-		w5[i] = w5[i]>>3; //w5 <- w5*1/8 ---> w5=w5/24
-
-		w6[i] = w2[i]+w6[i]; //w6 <- w6+w2
-		temp1[i] = w4[i]<<4; //temp <- 16*w4
-		w2[i] = w2[i]+temp1[i]; //w2 <- w2+16*w4
-
-		w2[i] = w2[i]*inv9; //w2 <- w2*1/9
-		w2[i] = w2[i]>>1; //w2 <- w2*1/2 ---> w2=w2/18
-
-		w3[i]= w3[i]-w5[i];//w3 <- w3-w5
-		
-		w4[i] = w4[i]+w2[i]; //w4 <- w4+w2
-
-		w4[i] = int0-w4[i]; //w4 <- -(w4+w2)
-
-		temp1[i] = w2[i]*int30; //temp <- w2*30
-		w6[i]= temp1[i]-w6[i];//w6 <- 30*w2-w6
-
-		w6[i] = w6[i]*inv15; //w6 <- w6*1/15
-		w6[i] = w6[i]>>2; //w6 <- w6*1/4 ---> w6=w6/60
-
-		w2[i]= w2[i]-w6[i];//w2 <- w2-w6
-
-	}
-
-
-	for(i=0; i<2*SABER_N; i++){
-		result_final[i] = 0;
-	}	
-
-	for(i=0;i<2*small_len-1;i++){	
-		result_final[0*small_len+i]= result_final[0*small_len+i]+ w7[i];
-		result_final[1*small_len+i]= result_final[1*small_len+i]+ w6[i];
-		result_final[2*small_len+i]= result_final[2*small_len+i]+ w5[i];
-		result_final[3*small_len+i]= result_final[3*small_len+i]+ w4[i];
-		result_final[4*small_len+i]= result_final[4*small_len+i]+ w3[i];
-		result_final[5*small_len+i]= result_final[5*small_len+i]+ w2[i];
-		result_final[6*small_len+i]= result_final[6*small_len+i]+ w1[i];
-	}		
-	
-	//---------------reduction-------
-	for(i=n;i<2*n-1;i++){
-		result_final[i-n]=(result_final[i-n]-result_final[i]);
+//------------Last stage---------------------------
+	for(i=0;i<N-1;i++){
+		result_d01[i]=result_d01[i]-result_final[i]-result_final[i+N];
 	}
 	
-	result_final[n]=0; //256th coefficient=0;
-	//----------------------copy result back----------------
-
-	for(i=0; i<n; i++){
-            result[i] = reduce(result_final[i],p_mod_or);;
+	for(i=0;i<N-1;i++){
+		result_final[i+1*N/2]=result_final[i+1*N/2]+result_d01[i];//-result_d0[i]-result_d1[i];		
 	}
-
 
 }
 
 
 
-
-void pol_mul_sb(int16_t* a, int16_t* b, int16_t* res, uint16_t p, uint32_t n,uint32_t start) //simple school book
-{ // Polynomial multiplication using the schoolbook method, c[x] = a[x]*b[x] 
-	// SECURITY NOTE: TO BE USED FOR TESTING ONLY.  
-
-
-	uint32_t i, j,mask = 2*n - 1;
-	
-	//int16_t *c;
-	//c=(int16_t *)malloc(mask*sizeof(int16_t));
-	int16_t c[2*n-1];
-	for (i = 0; i < mask; i++) c[i] = 0;
-
-	for (i = start; i < start+n; i++) {
-		for (j = start; j < start+n; j++) {
-			c[i+j-2*start]=reduce(c[i+j-2*start] + (a[i] * b[j]), p);
-			//printf("i+j : %u,i:%u,j:%u,a[i]=%lu,b[j]=%lu,c[i+j]=%lu\n",i+j,i,j,a[i],b[j],c[i+j]);
-		}
-	}
-	for (i = 0; i < mask; i++){
-		res[i] = (res[i]^res[i])+c[i];
-		//res[i] = reduce(res[i]+c[i],p);
-	}
-
-	//free(c);
-
-}
-
-static inline int16_t reduce(int16_t a, int64_t p)
+void toom_cook_4way (uint16_t* a1, uint16_t* b1, uint16_t* result)
 {
-    return a&(p-1);
+	uint16_t inv3 = 43691, inv9 = 36409, inv15 = 61167;
+
+	uint16_t aw1[N_SB], aw2[N_SB], aw3[N_SB], aw4[N_SB], aw5[N_SB], aw6[N_SB], aw7[N_SB];
+	uint16_t bw1[N_SB], bw2[N_SB], bw3[N_SB], bw4[N_SB], bw5[N_SB], bw6[N_SB], bw7[N_SB];
+	uint16_t w1[N_SB_RES] = {0}, w2[N_SB_RES] = {0}, w3[N_SB_RES] = {0}, w4[N_SB_RES] = {0},
+			 w5[N_SB_RES] = {0}, w6[N_SB_RES] = {0}, w7[N_SB_RES] = {0};
+	uint16_t r0, r1, r2, r3, r4, r5, r6, r7;
+	uint16_t *A0, *A1, *A2, *A3, *B0, *B1, *B2, *B3;
+	A0 = a1;
+	A1 = &a1[N_SB];
+	A2 = &a1[2*N_SB];
+	A3 = &a1[3*N_SB];
+	B0 = b1;
+	B1 = &b1[N_SB];
+	B2 = &b1[2*N_SB];
+	B3 = &b1[3*N_SB];
+
+	uint16_t * C;
+	C = result;
+
+	int i,j;
+
+// EVALUATION
+	for (j = 0; j < N_SB; ++j) {
+		r0 = A0[j];
+		r1 = A1[j];
+		r2 = A2[j];
+		r3 = A3[j];
+		r4 = r0 + r2;
+		r5 = r1 + r3;
+		r6 = r4 + r5; r7 = r4 - r5;
+		aw3[j] = r6;
+		aw4[j] = r7;
+		r4 = ((r0 << 2)+r2) << 1;
+		r5 = (r1 << 2) + r3;
+		r6 = r4 + r5; r7 = r4 - r5;
+		aw5[j] = r6;
+		aw6[j] = r7;
+		r4 = (r3 << 3) + (r2 << 2) + (r1 << 1) + r0;
+		aw2[j] = r4; aw7[j] = r0;
+		aw1[j] = r3;
+	}
+	for (j = 0; j < N_SB; ++j) {
+		r0 = B0[j];
+		r1 = B1[j];
+		r2 = B2[j];
+		r3 = B3[j];
+		r4 = r0 + r2;
+		r5 = r1 + r3;
+		r6 = r4 + r5; r7 = r4 - r5;
+		bw3[j] = r6;
+		bw4[j] = r7;
+		r4 = ((r0 << 2)+r2) << 1;
+		r5 = (r1 << 2) + r3;
+		r6 = r4 + r5; r7 = r4 - r5;
+		bw5[j] = r6;
+		bw6[j] = r7;
+		r4 = (r3 << 3) + (r2 << 2) + (r1 << 1) + r0;
+		bw2[j] = r4; bw7[j] = r0;
+		bw1[j] = r3;
+	}
+
+// MULTIPLICATION
+
+	karatsuba_simple(aw1, bw1, w1);
+	karatsuba_simple(aw2, bw2, w2);
+	karatsuba_simple(aw3, bw3, w3);
+	karatsuba_simple(aw4, bw4, w4);
+	karatsuba_simple(aw5, bw5, w5);
+	karatsuba_simple(aw6, bw6, w6);
+	karatsuba_simple(aw7, bw7, w7);
+
+// INTERPOLATION
+	for (i = 0; i < N_SB_RES; ++i) {
+		r0 = w1[i];
+		r1 = w2[i];
+		r2 = w3[i];
+		r3 = w4[i];
+		r4 = w5[i];
+		r5 = w6[i];
+		r6 = w7[i];
+
+		r1 = r1 + r4;
+		r5 = r5 - r4;
+		r3 = ((r3-r2) >> 1);
+		r4 = r4 - r0;
+		r4 = r4 - (r6 << 6);
+		r4 = (r4 << 1) + r5;
+		r2 = r2 + r3;
+		r1 = r1 - (r2 << 6) - r2;
+		r2 = r2 - r6;
+		r2 = r2 - r0;
+		r1 = r1 + 45*r2;
+		r4 = (((r4 - (r2 << 3))*inv3) >> 3);
+		r5 = r5 + r1;
+		r1 = (((r1 + (r3 << 4))*inv9) >> 1);
+		r3 = -(r3 + r1);
+		r5 = (((30*r1 - r5)*inv15) >> 2);
+		r2 = r2 - r4;
+		r1 = r1 - r5;
+
+		C[i]     += r6;
+		C[i+64]  += r5;
+		C[i+128] += r4;
+		C[i+192] += r3;
+		C[i+256] += r2;
+		C[i+320] += r1;
+		C[i+384] += r0;
+	}
 }
+
 
