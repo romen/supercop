@@ -16,6 +16,13 @@ static inline modq modq_freeze(crypto_int32 a)
   return a;
 }
 
+static inline modq modq_freeze_short(crypto_int32 a)
+{
+  a -= 4591 * ((58470 * a + 134217728) >> 28);
+  return a;
+}
+
+
 static inline modq modq_minusproduct(modq a,modq b,modq c)
 {
   crypto_int32 A = a;
