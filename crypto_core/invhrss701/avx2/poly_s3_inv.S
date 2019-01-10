@@ -461,10 +461,9 @@ const_all_but_high_98:
 .word 0
 .word 0
 .text
-.hidden poly_S3_inv
-.global poly_S3_inv
+.global crypto_core_invhrss701_avx2_internal
 .att_syntax prefix
-poly_S3_inv:
+crypto_core_invhrss701_avx2_internal:
 push %r12
 push %r13
 push %r14

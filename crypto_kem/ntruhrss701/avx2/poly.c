@@ -5,7 +5,6 @@
 extern void poly_Rq_mul(poly *r, const poly *a, const poly *b);
 extern void poly_S3_mul(poly *r, const poly *a, const poly *b);
 extern void poly_Rq_mul_xm1(poly *r, const poly *a);
-extern void poly_S3_inv(poly *r, const poly *a);
 extern void poly_Rq_to_S3(poly *r, const poly *a);
 extern void poly_S3_to_Rq(poly *r, const poly *a);
 extern void cbdS3(poly *r, const uint32_t *buf);
@@ -271,4 +270,11 @@ void poly_Rq_inv(poly *r, const poly *a)
   poly ai2;
   poly_R2_inv(&ai2, a);
   poly_R2_inv_to_Rq_inv(r, &ai2, a);
+}
+
+#include "crypto_core_invhrss701.h"
+
+void poly_S3_inv(poly *r, const poly *a)
+{
+  crypto_core_invhrss701((void *) r,(const void *) a,0,0);
 }
