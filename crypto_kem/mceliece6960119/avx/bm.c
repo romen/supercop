@@ -1,15 +1,16 @@
 /*
-  This file is for the Berlekamp-Massey algorithm
+  This file is for the inversion-free Berlekamp-Massey algorithm
+  see https://ieeexplore.ieee.org/document/87857
 */
 
 #include "bm.h"
 
 #include "gf.h"
+#include "vec128.h"
 #include "params.h"
 
 #include <stdint.h>
 
-extern void vec128_mul_asm(vec128 *, vec128 *, vec128 *, int);
 extern gf vec_reduce_asm(vec128 *);
 extern void update_asm(void *, gf, int);
 

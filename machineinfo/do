@@ -37,6 +37,8 @@ echo "=== `date` === grep . /dev/null /sys/devices/system/cpu/cpu*/cpufreq/scali
 grep . /dev/null /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq || :
 echo "=== `date` === grep . /dev/null /sys/devices/system/cpu/cpu*/cpufreq/cpb"
 grep . /dev/null /sys/devices/system/cpu/cpu*/cpufreq/cpb || :
+echo "=== `date` === grep . /dev/null /sys/devices/system/cpu/intel_pstate/no_turbo"
+grep . /dev/null /sys/devices/system/cpu/intel_pstate/no_turbo || :
 echo "=== `date` === grep . /dev/null /sys/devices/system/cpu/cpu*/clock_tick"
 grep . /dev/null /sys/devices/system/cpu/cpu*/clock_tick || :
 

@@ -1,5 +1,5 @@
 /*
-  This file is for Nieddereiter decryption
+  This file is for Niederreiter decryption
 */
 
 #include "decrypt.h"
@@ -135,7 +135,7 @@ static void reformat_256to128(vec128 * out, vec256 * in)
 	}
 }
 
-/* Nieddereiter decryption with the Berlekamp decoder */
+/* Niederreiter decryption with the Berlekamp decoder */
 /* intput: sk, secret key */
 /*         s, ciphertext (syndrome) */
 /* output: e, error vector */

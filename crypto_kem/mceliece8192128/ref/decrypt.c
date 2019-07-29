@@ -1,5 +1,5 @@
 /*
-  This file is for Nieddereiter decryption
+  This file is for Niederreiter decryption
 */
 
 #include <stdio.h>
@@ -13,7 +13,7 @@
 #include "gf.h"
 #include "bm.h"
 
-/* Nieddereiter decryption with the Berlekamp decoder */
+/* Niederreiter decryption with the Berlekamp decoder */
 /* intput: sk, secret key */
 /*         c, ciphertext */
 /* output: e, error vector */

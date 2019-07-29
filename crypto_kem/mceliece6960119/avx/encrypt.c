@@ -1,12 +1,12 @@
 /*
-  This file is for Nieddereiter encryption
+  This file is for Niederreiter encryption
 */
 
 #include "encrypt.h"
 
 #include "util.h"
 #include "params.h"
-#include "crypto_sort_int32.h"
+#include "int32_sort.h"
 #include "randombytes.h"
 
 #include <stdint.h>
@@ -50,7 +50,7 @@ static void gen_e(unsigned char *e)
 
 		// check for repetition
 
-		crypto_sort_int32(ind32, SYS_T);
+		int32_sort(ind32, SYS_T);
 
 		eq = 0;
 		for (i = 1; i < SYS_T; i++)

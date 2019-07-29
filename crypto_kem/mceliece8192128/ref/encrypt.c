@@ -1,5 +1,5 @@
 /*
-  This file is for Nieddereiter encryption
+  This file is for Niederreiter encryption
 */
 
 #include "encrypt.h"
@@ -15,16 +15,26 @@
 
 #include "gf.h"
 
+static inline uint32_t same_mask(uint16_t x, uint16_t y)
+{
+	uint32_t mask;
+
+	mask = x ^ y;
+	mask -= 1;
+	mask >>= 31;
+	mask = -mask;
+
+	return mask;
+}
+
 /* output: e, an error vector of weight t */
 static void gen_e(unsigned char *e)
 {
 	int i, j, eq;
 
 	uint16_t ind[ SYS_T ];
-	uint64_t e_int[ SYS_N/64 ];	
-	uint64_t one = 1;	
-	uint64_t mask;	
-	uint64_t val[ SYS_T ];	
+	unsigned char mask;	
+	unsigned char val[ SYS_T ];	
 
 	while (1)
 	{
@@ -46,25 +56,19 @@ static void gen_e(unsigned char *e)
 	}
 
 	for (j = 0; j < SYS_T; j++)
-		val[j] = one << (ind[j] & 63);
+		val[j] = 1 << (ind[j] & 7);
 
-	for (i = 0; i < SYS_N/64; i++) 
+	for (i = 0; i < SYS_N/8; i++) 
 	{
-		e_int[i] = 0;
+		e[i] = 0;
 
 		for (j = 0; j < SYS_T; j++)
 		{
-			mask = i ^ (ind[j] >> 6);
-			mask -= 1;
-			mask >>= 63;
-			mask = -mask;
+			mask = same_mask(i, (ind[j] >> 3));
 
-			e_int[i] |= val[j] & mask;
+			e[i] |= val[j] & mask;
 		}
 	}
-
-	for (i = 0; i < SYS_N/64; i++)
-		store8(e + i*8, e_int[i]);
 }
 
 /* input: public key pk, error vector e */

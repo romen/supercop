@@ -1,6 +1,6 @@
 /*
   This file is for transpose of the Gao-Mateer FFT
-  Functions with names ending with _tr are the transpose of the corresponding functions in fft.c
+  Functions with names ending with _tr are (roughly) the transpose of the corresponding functions in fft.c
 */
 
 #include "fft_tr.h"
@@ -32,9 +32,9 @@ static void radix_conversions_tr(vec128 in[][ GFBITS ])
 		 vec128_set2x(0x00000000FFFFFFFF, 0x00000000FFFFFFFF)}
 	};
 
-	vec128 s[6][2][GFBITS] = 
+	const vec128 s[6][2][GFBITS] = 
 	{
-#include "scalars13_4x.data"
+#include "scalars_4x.data"
 	};
 	
 	//
@@ -107,29 +107,12 @@ static void butterflies_tr(vec128 out[][ GFBITS ], vec128 in[][ GFBITS ])
 	vec128 pre[ 6  ][ GFBITS ];
 	vec128 buf[ 64 ];
 
-	vec128 consts64[ GFBITS ] =
+	const vec128 consts[ 64 ][ GFBITS ] =
 	{
-		vec128_set2x(0X6969969669699696, 0X6969969669699696),
-		vec128_set2x(0X9966669966999966, 0X9966669966999966),
-		vec128_set2x(0X9966669966999966, 0X9966669966999966),
-		vec128_set2x(0XFF0000FF00FFFF00, 0XFF0000FF00FFFF00),
-		vec128_set2x(0XCC3333CCCC3333CC, 0XCC3333CCCC3333CC),
-		vec128_set2x(0X9966669966999966, 0X9966669966999966),
-		vec128_set2x(0X6666666666666666, 0X6666666666666666),
-		vec128_set2x(0XA55AA55AA55AA55A, 0XA55AA55AA55AA55A),
-		vec128_set2x(0XCCCC33333333CCCC, 0XCCCC33333333CCCC),
-		vec128_set2x(0X5A5A5A5A5A5A5A5A, 0X5A5A5A5A5A5A5A5A),
-		vec128_set2x(0X55AAAA55AA5555AA, 0X55AAAA55AA5555AA),
-		vec128_set2x(0X0FF0F00FF00F0FF0, 0X0FF0F00FF00F0FF0),
-		vec128_set2x(0X5AA55AA5A55AA55A, 0X5AA55AA5A55AA55A)
+#include "consts.data"
 	};
 
-	vec128 consts[ 63 ][ GFBITS ] =
-	{
-#include "consts13.data"
-	};
-
-	uint64_t consts_ptr = 63;
+	uint64_t consts_ptr = 64;
 
 	const unsigned char reversal[] = 
 	{
@@ -176,7 +159,7 @@ static void butterflies_tr(vec128 out[][ GFBITS ], vec128 in[][ GFBITS ])
 		for (b = 0; b < GFBITS; b++) 
 			tmp0[b] = vec128_xor(tmp0[b], tmp1[b]);
 
-		vec128_mul(tmp, tmp0, consts64);
+		vec128_mul(tmp, tmp0, consts[0]);
 
 		for (b = 0; b < GFBITS; b++) 
 			tmp1[b] = vec128_xor(tmp1[b], tmp[b]);

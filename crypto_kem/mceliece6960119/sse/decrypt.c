@@ -1,5 +1,5 @@
 /*
-  This file is for Nieddereiter decryption
+  This file is for Niederreiter decryption
 */
 
 #include "decrypt.h"
@@ -135,7 +135,7 @@ static uint64_t synd_cmp(vec128 s0[][ GFBITS ] , vec128 s1[][ GFBITS ])
 	return vec128_testz(diff);
 }
 
-/* Nieddereiter decryption with the Berlekamp decoder */
+/* Niederreiter decryption with the Berlekamp decoder */
 /* intput: sk, secret key */
 /*         s, ciphertext (syndrome) */
 /* output: e, error vector */

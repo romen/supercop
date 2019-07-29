@@ -1,5 +1,6 @@
 /*
   This file is for the Gao-Mateer FFT
+  sse http://www.math.clemson.edu/~sgao/papers/GM10.pdf
 */
 
 #include "fft.h"
@@ -31,9 +32,9 @@ static void radix_conversions(vec128 *in)
 		 vec128_set2x(0x0000FFFF00000000, 0x0000FFFF00000000)}
 	};
 
-	vec128 s[5][GFBITS] = 
+	const vec128 s[5][GFBITS] = 
 	{
-#include "scalars13_2x.data"
+#include "scalars_2x.data"
 	};
 	
 	//
@@ -78,16 +79,16 @@ static void butterflies(vec128 out[][ GFBITS ], vec128 *in)
 	vec128 buf[64];
 
 	uint64_t v0, v1;
-	uint64_t consts_ptr = 0;
+	uint64_t consts_ptr = 1;
 
-	vec128 consts[ 63 ][ GFBITS ] =
+	const vec128 consts[ 64 ][ GFBITS ] =
 	{
-#include "consts13.data"
+#include "consts.data"
 	};
 
-	vec128 powers[ 64 ][ GFBITS ] =
+	const vec128 powers[ 64 ][ GFBITS ] =
 	{
-#include "powers13.data"
+#include "powers.data"
 	};
 
 	const unsigned char reversal[64] = 

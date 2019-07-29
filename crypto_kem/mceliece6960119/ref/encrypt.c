@@ -1,5 +1,5 @@
 /*
-  This file is for Nieddereiter encryption
+  This file is for Niederreiter encryption
 */
 
 #include "encrypt.h"
@@ -15,54 +15,44 @@
 
 #include "gf.h"
 
-/* moving the indices in the right range to the beginning of the array */
-static int mov_forward(uint16_t *ind)
+static inline uint32_t same_mask(uint16_t x, uint16_t y)
 {
-	int i, j, found;
-	uint16_t t;
+	uint32_t mask;
 
-	for (i = 0; i < SYS_T; i++)
-	{
-		found = 0;
+	mask = x ^ y;
+	mask -= 1;
+	mask >>= 31;
+	mask = -mask;
 
-		for (j = i; j < SYS_T*2; j++)	
-		{
-			if (ind[j] < SYS_N)
-			{
-				t = ind[i]; ind[i] = ind[j]; ind[j] = t;
-				found = 1;
-				break;			
-			}
-		}
-
-		if (found == 0) 
-			break;
-	}
-
-	return found;
+	return mask;
 }
 
 /* output: e, an error vector of weight t */
 static void gen_e(unsigned char *e)
 {
-	int i, j, eq;
+	int i, j, eq, count;
 
+	uint16_t ind_[ SYS_T*2 ];
 	uint16_t ind[ SYS_T*2 ];
-	uint64_t e_int[ (SYS_N+63)/64 ];	
-	uint64_t one = 1;	
-	uint64_t mask;	
-	uint64_t val[ SYS_T ];	
+	unsigned char mask;	
+	unsigned char val[ SYS_T ];	
 
 	while (1)
 	{
-		randombytes((unsigned char *) ind, sizeof(ind));
+		randombytes((unsigned char *) ind_, sizeof(ind_));
 
 		for (i = 0; i < SYS_T*2; i++)
-			ind[i] &= GFMASK;
+			ind_[i] &= GFMASK;
 
-		if (mov_forward(ind) == 0)
-			continue;
-	
+		// moving and counting indices in the correct range
+
+		count = 0;
+		for (i = 0; i < SYS_T*2; i++)
+			if (ind_[i] < SYS_N)
+				ind[ count++ ] = ind_[i];
+		
+		if (count < SYS_T) continue;
+
 		// check for repetition
 
 		eq = 0;
@@ -76,28 +66,19 @@ static void gen_e(unsigned char *e)
 	}
 
 	for (j = 0; j < SYS_T; j++)
-		val[j] = one << (ind[j] & 63);
+		val[j] = 1 << (ind[j] & 7);
 
-	for (i = 0; i < (SYS_N+63)/64; i++) 
+	for (i = 0; i < SYS_N/8; i++) 
 	{
-		e_int[i] = 0;
+		e[i] = 0;
 
 		for (j = 0; j < SYS_T; j++)
 		{
-			mask = i ^ (ind[j] >> 6);
-			mask -= 1;
-			mask >>= 63;
-			mask = -mask;
+			mask = same_mask(i, (ind[j] >> 3));
 
-			e_int[i] |= val[j] & mask;
+			e[i] |= val[j] & mask;
 		}
 	}
-
-	for (i = 0; i < (SYS_N+63)/64 - 1; i++) 
-		{ store8(e, e_int[i]); e += 8; }
-
-	for (j = 0; j < (SYS_N % 64); j+=8) 
-		e[ j/8 ] = (e_int[i] >> j) & 0xFF;
 }
 
 /* input: public key pk, error vector e */

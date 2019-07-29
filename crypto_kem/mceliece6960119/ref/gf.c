@@ -190,24 +190,24 @@ void GF_mul(gf *out, gf *in0, gf *in1)
 {
 	int i, j;
 
-	gf prod[237];
+	gf prod[ SYS_T*2-1 ];
 
-	for (i = 0; i < 237; i++)
+	for (i = 0; i < SYS_T*2-1; i++)
 		prod[i] = 0;
 
-	for (i = 0; i < 119; i++)
-		for (j = 0; j < 119; j++)
+	for (i = 0; i < SYS_T; i++)
+		for (j = 0; j < SYS_T; j++)
 			prod[i+j] ^= gf_mul(in0[i], in1[j]);
 
 	//
  
-	for (i = 236; i >= 119; i--)
+	for (i = (SYS_T-1)*2; i >= SYS_T; i--)
 	{
-		prod[i - 117] ^= gf_mul(prod[i], (gf) 6400);
-		prod[i - 119] ^= gf_mul(prod[i], (gf) 3134);
+		prod[i - SYS_T +  2] ^= gf_mul(prod[i], (gf) 6400);
+		prod[i - SYS_T +  0] ^= gf_mul(prod[i], (gf) 3134);
 	}
 
-	for (i = 0; i < 119; i++)
+	for (i = 0; i < SYS_T; i++)
 		out[i] = prod[i];
 }
 

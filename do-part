@@ -187,7 +187,7 @@ do
     echo "=== `date` === trying CXX=$cpp CXXFLAGS=$cppopts"
     rm -rf "$work"
     mkdir -p "$work"
-    cp -pr ntl-10.5.0/* "$work"
+    cp -pr ntl-11.3.2/* "$work"
     ( cd "$work/src" \
       && ./configure \
          CXX="$cpp" CXXFLAGS="$cppopts" \
@@ -248,7 +248,7 @@ do
     echo "=== `date` === trying CXX=$cpp CXXFLAGS=$cppopts"
     rm -rf "$work"
     mkdir -p "$work"
-    cp -pr cryptopp-565/* "$work"
+    cp -pr cryptopp-820/* "$work"
     ( cd "$work" \
       && make CXX="$cpp" CXXFLAGS="-DNDEBUG $cppopts" LDFLAGS="$cppopts" \
       && cp libcryptopp.a "$lib/$abi/libcryptopp.a" \
