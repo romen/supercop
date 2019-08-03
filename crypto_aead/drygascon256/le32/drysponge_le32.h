@@ -12,8 +12,8 @@ still several times slower compared to what can be done with assembly.
 #include "drysponge_common.h"
 
 //assume 32bit alignement is enough to access uint64_t since we target 32 bit CPU
-#define ALIGN64 4
-//#define ALIGN64 8
+//#define ALIGN64 4
+#define ALIGN64 8
 
 #ifndef DRYSPONGE_DBG_EN
 #define DRYSPONGE_DBG_EN 0
@@ -70,19 +70,32 @@ static void DRYSPONGE_g(
     #endif
     ctx->fcnt++;
     DRYSPONGE_xor64(ctx->r,ctx->r,ctx->r);//r=0
+    //memset(ctx->r,0,DRYSPONGE_BLOCKSIZE);
     for(unsigned int j = 0;j<ctx->rounds;j++){
         #if DRYSPONGE_DBG_EN >= DRYSPONGE_DBG_ROUND_IO
             printf("   CoreRound entry %d:\n",j);
             DRYSPONGE_print_state(ctx);
         #endif
         DRYSPONGE_CoreRound(ctx,j);
+        #ifndef DRYSPONGE_ACCUMULATE_SAFE_AND_SLOW
         uint32_t*r32 = (uint32_t*)ctx->r;
         for(unsigned int k=0;k<DRYSPONGE_ACCUMULATE_FACTOR;k++){
             uint32_t *cpart = ((uint32_t*)ctx->c)+k*DRYSPONGE_BLOCKSIZE32;
             for(unsigned int i=0;i<DRYSPONGE_BLOCKSIZE32;i++){
                 r32[i]^=cpart[(i+k)%DRYSPONGE_BLOCKSIZE32];
             }
+            //DRYSPONGE_print_state(ctx);
         }
+        #else
+        uint8_t*c8 = (uint8_t*)ctx->c;
+        uint8_t*r8 = (uint8_t*)ctx->r;
+        for(unsigned int k=0;k<DRYSPONGE_ACCUMULATE_FACTOR;k++){
+            uint8_t *cpart = c8+4*k*DRYSPONGE_BLOCKSIZE32;
+            for(unsigned int i=0;i<DRYSPONGE_BLOCKSIZE;i++){
+                r8[i]^=cpart[(i+k*4)%DRYSPONGE_BLOCKSIZE];
+            }
+        }
+        #endif
     }
 }
 #endif

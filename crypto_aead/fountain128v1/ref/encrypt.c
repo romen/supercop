@@ -385,7 +385,7 @@ int crypto_aead_encrypt(
 	const unsigned char *k
 	)
 {
-	unsigned long long i;
+	unsigned long long i,j;
 	unsigned char ks[128], mac[16], kstem = 0, adbit = 0;
 	unsigned char LFSR1[64], LFSR2[64], LFSR3[64], LFSR4[64];
 	unsigned char key[128], iv[96];
@@ -406,11 +406,14 @@ int crypto_aead_encrypt(
 
 
 	//process the associated data
-	for (i = 0; i < adlen; i++)
-	{
-		adbit = (ad[i] >> i) & 0x1;
-		kstem = filter(LFSR1, LFSR2, LFSR3, LFSR4);
-		Stateupdate_ad(LFSR1, LFSR2, LFSR3, LFSR4, adbit ^ kstem);
+	for (i = 0; i < adlen; i++){
+		for (j = 0; j < 8; j++)
+		{
+			adbit = 0;
+			adbit = (ad[i] >> j) & 0x1;
+			kstem = filter(LFSR1, LFSR2, LFSR3, LFSR4);
+			Stateupdate_ad(LFSR1, LFSR2, LFSR3, LFSR4, adbit ^ kstem);
+		}
 	}
 
 	// middle seperation
@@ -451,7 +454,7 @@ int crypto_aead_decrypt(
 	const unsigned char *k
 	)
 {
-	unsigned long long i;
+	unsigned long long i,j;
 	unsigned char ks[128], tag[16], kstem = 0, adbit = 0, check = 0;
 	unsigned char LFSR1[64], LFSR2[64], LFSR3[64], LFSR4[64];
 	unsigned char key[128], iv[96];
@@ -471,11 +474,14 @@ int crypto_aead_decrypt(
 	Initialization(key, iv, LFSR1, LFSR2, LFSR3, LFSR4);
 
 	//process the associated data
-	for (i = 0; i < adlen; i++)
-	{
-		adbit = (ad[i] >> i) & 0x1;
-		kstem = filter(LFSR1, LFSR2, LFSR3, LFSR4);
-		Stateupdate_ad(LFSR1, LFSR2, LFSR3, LFSR4, adbit ^ kstem);
+	for (i = 0; i < adlen; i++){
+		for (j = 0; j < 8; j++)
+		{
+			adbit = 0;
+			adbit = (ad[i] >> j) & 0x1;
+			kstem = filter(LFSR1, LFSR2, LFSR3, LFSR4);
+			Stateupdate_ad(LFSR1, LFSR2, LFSR3, LFSR4, adbit ^ kstem);
+		}
 	}
 
 	// middle seperation

@@ -516,6 +516,14 @@ do
 	    [ "x$expectedchecksumbig" = "x" ] && checksumok=unknown
 	    echo "$version $shorthostname $abi $startdate $o $p try $checksumsmall/$checksumbig $checksumok $cycles $checksumcycles $cyclespersecond $impl $compilerword" >&5
 
+            # XXX: some old systems have different output formats
+            size try *.o \
+            | while read text data bss dec hex fn
+            do
+              [ "$text" = "text" ] && continue
+              echo "$version $shorthostname $abi $startdate $o $p objsize $implementationdir $compilerword $text $data $bss $fn" >&5
+            done
+
 	    [ -s ../bestc/median ] && [ `cat ../bestc/median` -le $cycles ] && continue
 
 	    killafter 3600 \

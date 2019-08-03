@@ -615,6 +615,14 @@ do
 	  ' >&5
           [ -f OK ] || exit 0
 
+          # XXX: some old systems have different output formats
+          size try *.o \
+          | while read text data bss dec hex fn
+          do
+            [ "$text" = "text" ] && continue
+            echo "$version $shorthostname $abi $startdate $o $p objsize $implementationdir $compilerword $text $data $bss $fn" >&5
+          done
+
 	  rm -rf ../compiled || exit 0
 	  mkdir ../compiled || exit 0
   

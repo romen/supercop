@@ -1,1 +1,1 @@
-../../kyber1024/ref/verify.h
+../ref/verify.h
