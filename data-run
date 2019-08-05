@@ -128,7 +128,7 @@ do
   
       if [ "$t1" = keccak ]
       then
-        echo "keccak 20170902" >&8
+        echo "keccak 20190805" >&8
       fi
   
       if [ "$t1" = cryptopp ]
@@ -290,6 +290,7 @@ do
         ( cd "$top/$target/work/src" \
           && ./configure \
              CXX="$cpp" CXXFLAGS="$cppopts" \
+             NTL_STD_CXX11=off NTL_THREADS=off NTL_SAFE_VECTORS=off \
              INCLUDEDIR="$top/$abi/include" LIBDIR="$top/$abi/lib" \
              DOCDIR="$top/$target/work/installdoc" \
              GMP_INCDIR="$top/$abi/include" GMP_LIBDIR="$top/$abi/lib" \

@@ -191,6 +191,7 @@ do
     ( cd "$work/src" \
       && ./configure \
          CXX="$cpp" CXXFLAGS="$cppopts" \
+         NTL_STD_CXX11=off NTL_THREADS=off NTL_SAFE_VECTORS=off \
          INCLUDEDIR="$include/$abi" LIBDIR="$lib/$abi" \
          DOCDIR="$work/installdoc" \
          GMP_INCDIR="$include/$abi" GMP_LIBDIR="$lib/$abi" \
