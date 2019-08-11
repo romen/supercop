@@ -16,6 +16,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#if !defined(_MSC_VER)
+#include <stdalign.h>
+#endif
 
 #include "kdf_shake.h"
 #include "macros.h"
@@ -25,7 +28,6 @@
 #include "picnic2_types.h"
 #include "picnic2_tree.h"
 #include "io.h"
-
 
 #if defined(FN_ATTR)
 FN_ATTR
@@ -52,14 +54,14 @@ static int SIM_ONLINE(mzd_local_t* maskedKey, shares_t* mask_shares, randomTape_
 
   MPC_MUL(state, maskedKey, LOWMC_INSTANCE.k0_matrix,
           mask_shares);                                    // roundKey = maskedKey * KMatrix[0]
-  
+
   XOR(state, state, plaintext);
   XOR(state, state, LOWMC_INSTANCE.precomputed_constant_linear);
   MPC_MUL_MC(nl_part, maskedKey, LOWMC_INSTANCE.precomputed_non_linear_part_matrix,
              LOWMC_INSTANCE.precomputed_constant_non_linear, nl_part_masks, key_masks);
   for (uint32_t r = 0; r < LOWMC_R - 1; r++) {
     mpc_sbox(state, mask_shares, tapes, msgs, unopened_msgs, params);
-	mpc_xor_masks_nl(mask_shares, mask_shares, nl_part_masks, r*32 + 2, 30);
+    mpc_xor_masks_nl(mask_shares, mask_shares, nl_part_masks, r*32 + 2, 30);
     const word nl = CONST_BLOCK(nl_part, r >> 3)->w64[(r & 0x7) >> 1];
     BLOCK(state, 0)->w64[(LOWMC_N) / (sizeof(word) * 8) - 1] ^=
         (nl << (1 - (r & 1)) * 32) & WORD_C(0xFFFFFFFF00000000);
@@ -73,7 +75,7 @@ static int SIM_ONLINE(mzd_local_t* maskedKey, shares_t* mask_shares, randomTape_
     BLOCK(state, 0)->w64[(LOWMC_N) / (sizeof(word) * 8) - 1] &=
         WORD_C(0x00000003FFFFFFFF); // clear nl part
     XOR(state, state, state2);
-	mpc_xor_masks(mask_shares, mask_shares, mask2_shares);
+    mpc_xor_masks(mask_shares, mask_shares, mask2_shares);
   }
   mpc_sbox(state, mask_shares, tapes, msgs, unopened_msgs, params);
   mpc_xor_masks_nl(mask_shares, mask_shares, nl_part_masks, (LOWMC_R-1)*32 + 2, 30);
@@ -93,10 +95,10 @@ static int SIM_ONLINE(mzd_local_t* maskedKey, shares_t* mask_shares, randomTape_
     }
   }
   uint32_t output[LOWMC_N / 32];
-  uint8_t outstate[LOWMC_N / 8];
-  mzd_to_char_array(outstate, state, LOWMC_N/8);
+  uint32_t outstate[LOWMC_N / 32];
+  mzd_to_char_array((uint8_t*)outstate, state, LOWMC_N/8);
   reconstructShares(output, mask_shares);
-  xor_word_array(output, output, (uint32_t*)outstate, (LOWMC_N / 32));
+  xor_word_array(output, output, outstate, (LOWMC_N / 32));
 
   if (memcmp(output, pubKey, LOWMC_N / 8) != 0) {
     ret = -1;

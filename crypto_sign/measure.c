@@ -11,12 +11,12 @@ const long long sizes[] = { crypto_sign_BYTES, crypto_sign_PUBLICKEYBYTES, crypt
 
 #define MAXTEST_BYTES 100000
 
-#define TIMINGS 31
+#define TIMINGS 15
 
 static unsigned char *pk[TIMINGS + 1];
 static unsigned char *sk[TIMINGS + 1];
 static unsigned char *m[TIMINGS + 1]; unsigned long long mlen;
-static unsigned char *sm[TIMINGS + 1]; unsigned long long smlen;
+static unsigned char *sm[TIMINGS + 1]; unsigned long long smlen[TIMINGS + 1];
 static unsigned char *t[TIMINGS + 1]; unsigned long long tlen;
 
 void preallocate(void)
@@ -70,8 +70,8 @@ void measure(void)
         cycles[i] = cpucycles();
         rbytes[i] = randombytes_bytes;
         rcalls[i] = randombytes_calls;
-        bytes[i] = crypto_sign(sm[i],&smlen,m[i],mlen,sk[i]);
-	if (bytes[i] == 0) bytes[i] = smlen;
+        bytes[i] = crypto_sign(sm[i],&smlen[i],m[i],mlen,sk[i]);
+	if (bytes[i] == 0) bytes[i] = smlen[i];
       }
       for (i = 0;i < TIMINGS;++i) cycles[i] = cycles[i + 1] - cycles[i];
       for (i = 0;i < TIMINGS;++i) rbytes[i] = rbytes[i + 1] - rbytes[i];
@@ -85,7 +85,7 @@ void measure(void)
         cycles[i] = cpucycles();
         rbytes[i] = randombytes_bytes;
         rcalls[i] = randombytes_calls;
-        bytes[i] = crypto_sign_open(t[i],&tlen,sm[i],smlen,pk[i]);
+        bytes[i] = crypto_sign_open(t[i],&tlen,sm[i],smlen[i],pk[i]);
 	if (bytes[i] == 0) bytes[i] = tlen;
       }
       for (i = 0;i < TIMINGS;++i) cycles[i] = cycles[i + 1] - cycles[i];

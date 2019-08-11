@@ -108,7 +108,7 @@ static void sbox_layer_10_uint64(uint64_t* d) {
 
 
 lowmc_implementation_f lowmc_get_implementation(const lowmc_t* lowmc) {
-  ASSUME(lowmc->m == 10 || lowmc->m == 1);
+  ASSUME(lowmc->m == 10);
   ASSUME(lowmc->n == 128 || lowmc->n == 192 || lowmc->n == 256);
 
   if (CPU_SUPPORTS_AVX2) {
@@ -174,6 +174,7 @@ lowmc_store_implementation_f lowmc_store_get_implementation(const lowmc_t* lowmc
 lowmc_compute_aux_implementation_f lowmc_compute_aux_get_implementation(const lowmc_t* lowmc) {
   ASSUME(lowmc->m == 10);
   ASSUME(lowmc->n == 128 || lowmc->n == 192 || lowmc->n == 256);
+
   if (CPU_SUPPORTS_AVX2) {
     if (lowmc->m == 10) {
       switch (lowmc->n) {

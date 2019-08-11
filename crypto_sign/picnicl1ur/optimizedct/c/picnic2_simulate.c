@@ -57,6 +57,12 @@ static void broadcast(shares_t* shares, msgs_t* msgs) {
   }
 }
 
+/* For an input bit b = 0 or 1, return the word of all b bits, i.e.,
+ * extend(1) = 0xFFFFFFFFFFFFFFFF
+ * extend(0) = 0x0000000000000000
+ * Assumes inputs are always 0 or 1.  If this doesn't hold, add "& 1" to the
+ * input.
+ */
 static inline uint64_t extend(uint64_t bit) {
   return ~(bit - 1);
 }
@@ -220,7 +226,7 @@ static void mpc_xor_masks(shares_t* out, const shares_t* a, const shares_t* b) {
 
 
 lowmc_simulate_online_f lowmc_simulate_online_get_implementation(const lowmc_t* lowmc) {
-  ASSUME(lowmc->m == 10 || lowmc->m == 1);
+  ASSUME(lowmc->m == 10);
   ASSUME(lowmc->n == 128 || lowmc->n == 192 || lowmc->n == 256);
 
   if (lowmc->m == 10) {

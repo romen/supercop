@@ -10,7 +10,6 @@
 #ifndef KDF_SHAKE_H
 #define KDF_SHAKE_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
 #if !defined(KeccakP200_excluded)
@@ -33,14 +32,14 @@
 #else
 #include <libkeccak.a.headers/KeccakHash.h>
 #if defined(WITH_KECCAK_X4)
-/* Keccakx4 is not supported by SUPERCOP, so we need to ship it ourselves. */
+/* Keccakx4 is not fully supported by SUPERCOP, so we need to ship it ourselves. */
 #include "KeccakHashtimes4.h"
 #endif
 #endif
 
 #include "picnic_impl.h"
 
-typedef Keccak_HashInstance hash_context;
+typedef Keccak_HashInstance hash_context ATTR_ALIGNED(32);
 
 static inline void hash_init(hash_context* ctx, const picnic_instance_t* pp) {
   if (pp->digest_size == 32) {
@@ -80,7 +79,7 @@ typedef hash_context kdf_shake_t;
 #if !defined(WITH_KECCAK_X4)
 /* Instances that work with 4 states in parallel using the base Keccak implementation. */
 typedef struct hash_context_x4_s {
-  Keccak_HashInstance instances[4];
+  hash_context instances[4];
 } hash_context_x4;
 
 static inline void hash_init_x4(hash_context_x4* ctx, const picnic_instance_t* pp) {
@@ -115,7 +114,7 @@ static inline void hash_squeeze_x4(hash_context_x4* ctx, uint8_t** buffer, size_
 }
 #else
 /* Instances that work with 4 states in parallel. */
-typedef Keccak_HashInstancetimes4 hash_context_x4;
+typedef Keccak_HashInstancetimes4 hash_context_x4 ATTR_ALIGNED(32);
 
 static inline void hash_init_x4(hash_context_x4* ctx, const picnic_instance_t* pp) {
   if (pp->digest_size == 32) {

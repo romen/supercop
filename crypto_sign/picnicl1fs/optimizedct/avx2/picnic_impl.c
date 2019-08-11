@@ -91,9 +91,6 @@ static bool expand_challenge(uint8_t* challenge, const picnic_instance_t* pp,
   return true;
 }
 
-#define ALIGNT(s, t) (((s) + sizeof(t) - 1) & ~(sizeof(t) - 1))
-#define ALIGNU64T(s) ALIGNT(s, uint64_t)
-
 static sig_proof_t* proof_new(const picnic_instance_t* pp) {
   const size_t digest_size                    = pp->digest_size;
   const size_t seed_size                      = pp->seed_size;
@@ -463,7 +460,7 @@ static void hash_commitment_x4(const picnic_instance_t* pp, proof_round_t* prf_r
 /**
  * Compute commitment to 4 views, for verification
  */
-static void hash_commitment_x4_verify(const picnic_instance_t* pp, sorting_helper_t* helper,
+static void hash_commitment_x4_verify(const picnic_instance_t* pp, const sorting_helper_t* helper,
                                       const unsigned int vidx) {
   const size_t hashlen = pp->digest_size;
 
@@ -762,7 +759,7 @@ static void unruh_G_x4(const picnic_instance_t* pp, proof_round_t* prf_round, un
 /*
  * 4x G permutation for Unruh transform, for verification
  */
-static void unruh_G_x4_verify(const picnic_instance_t* pp, sorting_helper_t* helper,
+static void unruh_G_x4_verify(const picnic_instance_t* pp, const sorting_helper_t* helper,
                               unsigned int vidx, bool include_is) {
   hash_context_x4 ctx;
 
@@ -1158,9 +1155,9 @@ static int sign_impl(const picnic_instance_t* pp, const uint8_t* private_key,
   const int ret = sig_proof_to_char_array(pp, prf, sig, siglen);
 
   // clean up
-  for (unsigned i = 0; i < SC_PROOF; i++) {
-    for (unsigned j = 0; j < 4; j++) {
-      free(tape_bytes_x4[i][j]);
+  for (unsigned int k = 0; k < SC_PROOF; ++k) {
+    for (unsigned int j = 0; j < 4; ++j) {
+      free(tape_bytes_x4[k][j]);
     }
   }
   free(tape_bytes);
@@ -1224,8 +1221,8 @@ static int verify_impl(const picnic_instance_t* pp, const uint8_t* plaintext, mz
         num_current_rounds++;
       }
     }
-    unsigned int i           = 0;
-    sorting_helper_t* helper = sorted_rounds;
+    unsigned int i                 = 0;
+    const sorting_helper_t* helper = sorted_rounds;
     for (; i < (num_current_rounds / 4) * 4; i += 4, helper += 4) {
       const unsigned int a_i = current_chal;
       const unsigned int b_i = (a_i + 1) % 3;
@@ -1500,10 +1497,6 @@ void visualize_signature(FILE* out, const picnic_instance_t* pp, const uint8_t* 
 #define LOWMC_L3_1_OR_NULL NULL
 #define LOWMC_L5_1_OR_NULL NULL
 
-static const lowmc_t* const lowmc_instances[6] = {
-    LOWMC_L1_OR_NULL,   LOWMC_L3_OR_NULL,   LOWMC_L5_OR_NULL,
-    LOWMC_L1_1_OR_NULL, LOWMC_L3_1_OR_NULL, LOWMC_L5_1_OR_NULL};
-
 #define NULL_FNS                                                                                   \
   { NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 
@@ -1543,52 +1536,8 @@ static picnic_instance_t instances[PARAMETER_SET_MAX_INDEX] = {
      PICNIC_SIGNATURE_SIZE_Picnic_L5_1_UR, Picnic_L5_1_UR, TRANSFORM_UR, NULL_FNS}};
 static bool instance_initialized[PARAMETER_SET_MAX_INDEX];
 
-static const lowmc_t* lowmc_get_instance(unsigned int idx) {
-  return lowmc_instances[idx];
-}
-
-static bool create_instance(picnic_instance_t* pp, picnic_params_t param) {
-  const lowmc_t* lowmc_instance = NULL;
-
-  switch (param) {
-  case Picnic_L1_FS:
-  case Picnic_L1_UR:
-  case Picnic2_L1_FS:
-    lowmc_instance = lowmc_get_instance(0);
-    break;
-
-  case Picnic_L3_FS:
-  case Picnic_L3_UR:
-  case Picnic2_L3_FS:
-    lowmc_instance = lowmc_get_instance(1);
-    break;
-
-  case Picnic_L5_FS:
-  case Picnic_L5_UR:
-  case Picnic2_L5_FS:
-    lowmc_instance = lowmc_get_instance(2);
-    break;
-
-  case Picnic_L1_1_FS:
-  case Picnic_L1_1_UR:
-    lowmc_instance = lowmc_get_instance(3);
-    break;
-
-  case Picnic_L3_1_FS:
-  case Picnic_L3_1_UR:
-    lowmc_instance = lowmc_get_instance(4);
-    break;
-
-  case Picnic_L5_1_FS:
-  case Picnic_L5_1_UR:
-    lowmc_instance = lowmc_get_instance(5);
-    break;
-
-  default:
-    return false;
-  }
-
-  if (!lowmc_instance) {
+static bool create_instance(picnic_instance_t* pp) {
+  if (!pp->lowmc) {
     return false;
   }
 
@@ -1609,7 +1558,7 @@ const picnic_instance_t* picnic_instance_get(picnic_params_t param) {
   }
 
   if (!instance_initialized[param]) {
-    if (!create_instance(&instances[param], param)) {
+    if (!create_instance(&instances[param])) {
       return NULL;
     }
     instance_initialized[param] = true;

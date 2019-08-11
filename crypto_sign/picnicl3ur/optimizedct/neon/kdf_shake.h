@@ -10,7 +10,6 @@
 #ifndef KDF_SHAKE_H
 #define KDF_SHAKE_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
 #if !defined(KeccakP200_excluded)
@@ -33,7 +32,7 @@
 
 #include "picnic_impl.h"
 
-typedef Keccak_HashInstance hash_context;
+typedef Keccak_HashInstance hash_context ATTR_ALIGNED(32);
 
 static inline void hash_init(hash_context* ctx, const picnic_instance_t* pp) {
   if (pp->digest_size == 32) {
@@ -72,7 +71,7 @@ typedef hash_context kdf_shake_t;
 
 /* Instances that work with 4 states in parallel using the base Keccak implementation. */
 typedef struct hash_context_x4_s {
-  Keccak_HashInstance instances[4];
+  hash_context instances[4];
 } hash_context_x4;
 
 static inline void hash_init_x4(hash_context_x4* ctx, const picnic_instance_t* pp) {
