@@ -8,6 +8,7 @@
 #ifndef rng_h
 #define rng_h
 
+#include <stdio.h>
 #include "randombytes.h"
 
 #define RNG_SUCCESS      0
