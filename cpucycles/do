@@ -72,6 +72,7 @@ okabi | (
       echo alpha
       echo sgi
       echo armv8
+      echo riscv
       echo cortex
       echo dev4ns
       echo perfevent

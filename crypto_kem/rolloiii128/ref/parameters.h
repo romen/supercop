@@ -8,24 +8,20 @@
 
 #include "api.h"
 
-#define PARAM_M 101 /**< Parameter m of the scheme (finite field GF(q^m)) */
+#define PARAM_M 101 /**< Parameter m of the scheme (finite field GF(2^m)) */
 #define PARAM_N 47 /**< Parameter n of the scheme (code length) */
-#define PARAM_W 5 /**< Parameter omega of the scheme (weight of vectors) */
-#define PARAM_W_R 6 /**< Parameter omega_r of the scheme (weight of vectors) */
-#define PARAM_DFR 36 /**< Decryption Failure Rate (2^-36) */
+#define PARAM_W 5 /**< Parameter d of the scheme (weight of vectors) */
+#define PARAM_W_R 6 /**< Parameter r of the scheme (weight of vectors) */
+#define PARAM_DFR 36 /**< Decryption Failure Rate (2^-30) */
 #define PARAM_SECURITY 128 /**< Expected security level */
 
-#define NMODCOEFFS 3 //Number of "1" coefficients in the polynomial defining the ideal
-#define MODCOEFFS {0, 5, 47} //List of "1" coefficients in the polynomial defining the ideal
+#define PUBLIC_KEY_BYTES CRYPTO_PUBLICKEYBYTES
+#define SECRET_KEY_BYTES CRYPTO_SECRETKEYBYTES
+#define CIPHERTEXT_BYTES CRYPTO_CIPHERTEXTBYTES
+#define SHARED_SECRET_BYTES CRYPTO_BYTES
 
-#define SECRET_KEY_BYTES CRYPTO_SECRETKEYBYTES /**< Secret key size */
-#define PUBLIC_KEY_BYTES CRYPTO_PUBLICKEYBYTES /**< Public key size */
-#define SHARED_SECRET_BYTES CRYPTO_BYTES /**< Shared secret size */
-#define CIPHERTEXT_BYTES CRYPTO_CIPHERTEXTBYTES /**< Ciphertext size */
-
-#define GF2MBYTES 13 //Number of bytes to store an element of GF2^m
-#define FFI_VEC_R_BYTES 76 /**< Number of bytes required to store an NTL vector of size r */
-#define FFI_VEC_N_BYTES 594 /**< Number of bytes required to store an NTL vector of size n */
+#define FFI_VEC_R_BYTES 76 //Number of bytes to store R elements of GF2^m
+#define FFI_VEC_N_BYTES 594 //Number of bytes to store N elements of GF2^m
 #define SHA512_BYTES 64 /**< Size of SHA512 output */
 
 #define SEEDEXPANDER_SEED_BYTES 40 /**< Seed size of the NIST seed expander */

@@ -3,11 +3,10 @@
  * \brief Parameters of the RQC_KEM IND-CCA2 scheme
  */
 
-#include "api.h"
-
 #ifndef RQC_PARAMETER_H
 #define RQC_PARAMETER_H
 
+#include "api.h"
 
 #define PARAM_Q 2 /**< Parameter q of the scheme (finite field GF(q^m)) */
 #define PARAM_M 137 /**< Parameter m of the scheme (finite field GF(q^m)) */
@@ -24,9 +23,9 @@
 
 #define VEC_K_BYTES 52 /**< Number of bytes required to store a vector of size k */
 #define VEC_N_BYTES 2244 /**< Number of bytes required to store a vector of size n */
-#define FFI_ELT_BYTES 18 /**< Number of bytes required to store an element of GF(q^m) */
-#define FFI_VEC_K_BYTES PARAM_K * FFI_ELT_BYTES /**< Number of bytes required to store a vector of size k using the NTL-based ffi_vec implementation */
-#define FFI_VEC_N_BYTES PARAM_N * FFI_ELT_BYTES /**< Number of bytes required to store a vector of size n using the NTL-based ffi_vec implementation */
+#define FFI_ELT_BYTES 24 /**< Number of bytes required to store an element of GF(q^m) */
+#define FFI_VEC_K_BYTES PARAM_K * FFI_ELT_BYTES /**< Number of bytes required to store a vector of size k using ffi_vec */
+#define FFI_VEC_N_BYTES PARAM_N * FFI_ELT_BYTES /**< Number of bytes required to store a vector of size n using ffi_vec */
 
 #define SHA512_BYTES 64 /**< Size of SHA512 output */
 

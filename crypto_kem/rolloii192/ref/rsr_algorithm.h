@@ -6,9 +6,10 @@
 #ifndef RSR_ALGORITHM_H
 #define RSR_ALGORITHM_H
 
-#include "ffi_vec.h"
+#include "ffi_poly.h"
+#include "ffi_vspace.h"
 
-void rank_support_recover(ffi_vec& E, unsigned int& E_dim, unsigned int E_expected_dim, const ffi_vec& F, unsigned int F_dim, const ffi_vec& ec, unsigned int ec_size);
+unsigned int rank_support_recoverer(ffi_vspace E, unsigned int E_expected_dim, ffi_vspace F, unsigned int F_dim, ffi_poly ec, unsigned int ec_size);
 
 #endif
 
