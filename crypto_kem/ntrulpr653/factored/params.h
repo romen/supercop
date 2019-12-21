@@ -10,6 +10,8 @@
 #define tau3 290
 #define I 256
 
+#define ppadsort 653
+
 #define q18 57 /* round(2^18/q) */
 #define q27 29045 /* round(2^27/q) */
 #define q31 464722 /* floor(2^31/q) */

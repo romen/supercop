@@ -5,6 +5,8 @@
 #define q 4591
 #define w 286
 
+#define ppadsort 768
+
 #define q18 57 /* closest integer to 2^18/q */
 #define q27 29235 /* closest integer to 2^27/q */
 
