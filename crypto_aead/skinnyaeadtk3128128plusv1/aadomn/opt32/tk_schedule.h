@@ -2,10 +2,9 @@
 #define TK_SCHEDULE_BS_H_
 
 #include "stdint.h"
-typedef unsigned char u8;
-typedef uint32_t u32;
-typedef uint64_t u64;
-
+typedef unsigned char 	u8;
+typedef uint32_t 		u32;
+typedef uint64_t 		u64;
 typedef struct {
 	u32 rtk1[8*16];
 	u32 rtk2_3[8*40];
