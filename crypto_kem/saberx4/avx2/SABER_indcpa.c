@@ -11,6 +11,7 @@
 #include "fips202x4.h"
 #include <unistd.h>
 
+
 #define h1 4 //2^(EQ-EP-1)
 
 #define h2 ( (1<<(SABER_EP-2)) - (1<<(SABER_EP-SABER_ET-1)) + (1<<(SABER_EQ-SABER_EP-1)) )
@@ -445,20 +446,18 @@ void vector_vector_mul(__m256i a_avx[NUM_POLY][AVX_N1], __m256i b_bucket[NUM_POL
 
 
 void indcpa_kem_keypair(unsigned char *pk0, unsigned char *sk0,
-												unsigned char *pk1, unsigned char *sk1,
-												unsigned char *pk2, unsigned char *sk2,
-												unsigned char *pk3, unsigned char *sk3 )
+						unsigned char *pk1, unsigned char *sk1,
+						unsigned char *pk2, unsigned char *sk2,
+						unsigned char *pk3, unsigned char *sk3,
+						unsigned char seed_arr[4][SABER_SEEDBYTES], 
+						unsigned char noiseseed_arr[4][SABER_COINBYTES] )
 {
  
-	//polyvec a0[SABER_K], a1[SABER_K], a2[SABER_K], a3[SABER_K];
 	polyvecNew a0[SABER_K], a1[SABER_K], a2[SABER_K], a3[SABER_K];
 
 	uint16_t skpv1_0[SABER_K][SABER_N], skpv1_1[SABER_K][SABER_N], skpv1_2[SABER_K][SABER_N], skpv1_3[SABER_K][SABER_N];
 
-  unsigned char seed0[SABER_SEEDBYTES], seed1[SABER_SEEDBYTES], seed2[SABER_SEEDBYTES], seed3[SABER_SEEDBYTES];
-  unsigned char noiseseed0[SABER_COINBYTES], noiseseed1[SABER_COINBYTES], noiseseed2[SABER_COINBYTES], noiseseed3[SABER_COINBYTES];
-
-  int32_t i,j,k;
+	int32_t i,j,k;
 
 
 	//--------------AVX declaration------------------
@@ -470,7 +469,7 @@ void indcpa_kem_keypair(unsigned char *pk0, unsigned char *sk0,
 	__m256i res0_avx[SABER_K][SABER_N/16], res1_avx[SABER_K][SABER_N/16], res2_avx[SABER_K][SABER_N/16], res3_avx[SABER_K][SABER_N/16];
 	  
 
-	mask_ar[0]=~(0UL);mask_ar[1]=~(0UL);mask_ar[2]=~(0UL);mask_ar[3]=~(0UL);
+	mask_ar[0]=~(0UL); mask_ar[1]=~(0UL); mask_ar[2]=~(0UL); mask_ar[3]=~(0UL);
 	mask_load = _mm256_loadu_si256 ((__m256i const *)mask_ar);
 
 	floor_round=_mm256_set1_epi16(4);
@@ -489,47 +488,18 @@ void indcpa_kem_keypair(unsigned char *pk0, unsigned char *sk0,
 	load_values();
 
 
-	// randombytes0-3 are used to pass the KAT test. randombytes() is a deterministic function in rng.c
-	// In a real application randombytes0-3 should be replaced by randombytes()
+	shake128x4(seed_arr[0], seed_arr[1], seed_arr[2], seed_arr[3], SABER_SEEDBYTES, 
+			   seed_arr[0], seed_arr[1], seed_arr[2], seed_arr[3], SABER_SEEDBYTES);
 
-	randombytes(seed0, SABER_SEEDBYTES);
-	randombytes(noiseseed0, SABER_COINBYTES);
+	GenMatrix4x(a0, a1, a2, a3, seed_arr[0], seed_arr[1], seed_arr[2], seed_arr[3]);
 
-	// This modification is due to randombytes issue in SUPERCOP
-	for(i=0; i<SABER_SEEDBYTES; i++)
-	{
-		seed1[i]=seed0[i]; seed2[i]=seed0[i]; seed3[i]=seed0[i]; 
-	}
-	for(i=0; i<SABER_COINBYTES; i++)
-	{
-		noiseseed1[i]=noiseseed0[i]; noiseseed2[i]=noiseseed0[i]; noiseseed3[i]=noiseseed0[i];
-	}
-
-	/*
-	randombytes(seed0, SABER_SEEDBYTES);
-	randombytes(noiseseed0, SABER_COINBYTES);
-	randombytes(seed1, SABER_SEEDBYTES);
-	randombytes(noiseseed1, SABER_COINBYTES);
-	randombytes(seed2, SABER_SEEDBYTES);
-	randombytes(noiseseed2, SABER_COINBYTES);
-	randombytes(seed3, SABER_SEEDBYTES);
-	randombytes(noiseseed3, SABER_COINBYTES);
-	*/
-
-	
-
-	shake128x4(seed0, seed1, seed2, seed3, SABER_SEEDBYTES, seed0, seed1, seed2, seed3, SABER_SEEDBYTES);
-
-	GenMatrix4x(a0, a1, a2, a3, seed0, seed1, seed2, seed3);
-
-	GenSecret4x(skpv1_0, skpv1_1, skpv1_2, skpv1_3, noiseseed0, noiseseed1, noiseseed2, noiseseed3);
+	GenSecret4x(skpv1_0, skpv1_1, skpv1_2, skpv1_3, noiseseed_arr[0], noiseseed_arr[1], noiseseed_arr[2], noiseseed_arr[3]);
 
 
  	// Load sk into avx vectors		
  	for(i=0;i<SABER_K;i++)
  	{
 		for(j=0; j<SABER_N/16; j++){
-  		//sk_avx[i][j] = _mm256_loadu_si256 ((__m256i const *) (&skpv1[i][j*16]));
   		sk0_avx[i][j] = _mm256_loadu_si256 ((__m256i const *) (&skpv1_0[i][j*16]));
   		sk1_avx[i][j] = _mm256_loadu_si256 ((__m256i const *) (&skpv1_1[i][j*16]));
   		sk2_avx[i][j] = _mm256_loadu_si256 ((__m256i const *) (&skpv1_2[i][j*16]));
@@ -590,7 +560,6 @@ void indcpa_kem_keypair(unsigned char *pk0, unsigned char *sk0,
 
 		//------------------Pack sk into byte string-------
 		POLVEC2BSX4(sk0,sk1,sk2,sk3,skpv1_0,skpv1_1,skpv1_2,skpv1_3,SABER_Q);
-
 		//------------------Pack pk into byte string-------
 	
 		for(i=0;i<SABER_K;i++){ // reuses skpv1[] for unpacking avx of public-key
@@ -602,14 +571,14 @@ void indcpa_kem_keypair(unsigned char *pk0, unsigned char *sk0,
 				}
 			}
 		// load the public-key into pk byte string
-		POLVEC2BSX4(pk0,pk1,pk1,pk3,skpv1_0,skpv1_1,skpv1_2,skpv1_3,SABER_P);
+		POLVEC2BSX4(pk0,pk1,pk2,pk3,skpv1_0,skpv1_1,skpv1_2,skpv1_3,SABER_P);
 
 		for(i=0;i<SABER_SEEDBYTES;i++){ 
 		// now load the seedbytes in PK. Easy since seed bytes are kept in byte format.
-			pk0[SABER_POLYVECCOMPRESSEDBYTES + i]=seed0[i]; 
-			pk1[SABER_POLYVECCOMPRESSEDBYTES + i]=seed1[i]; 
-			pk2[SABER_POLYVECCOMPRESSEDBYTES + i]=seed2[i]; 
-			pk3[SABER_POLYVECCOMPRESSEDBYTES + i]=seed3[i]; 
+			pk0[SABER_POLYVECCOMPRESSEDBYTES + i]=seed_arr[0][i]; 
+			pk1[SABER_POLYVECCOMPRESSEDBYTES + i]=seed_arr[1][i]; 
+			pk2[SABER_POLYVECCOMPRESSEDBYTES + i]=seed_arr[2][i]; 
+			pk3[SABER_POLYVECCOMPRESSEDBYTES + i]=seed_arr[3][i]; 
 		}
 }
 
@@ -648,7 +617,10 @@ void indcpa_kem_enc(
 	  __m256i a2_avx[SABER_K][SABER_K][SABER_N/16], a3_avx[SABER_K][SABER_K][SABER_N/16];
 	  
 
-	  __m256i pkcl_avx[SABER_K][SABER_N/16];//public key of received by the client
+	  __m256i pkcl_avx0[SABER_K][SABER_N/16];//public key of received by the client
+	  __m256i pkcl_avx1[SABER_K][SABER_N/16];//public key of received by the client
+	  __m256i pkcl_avx2[SABER_K][SABER_N/16];//public key of received by the client
+	  __m256i pkcl_avx3[SABER_K][SABER_N/16];//public key of received by the client
 
 		//__m256i message_avx[SABER_N/16];
 		__m256i message0_avx[SABER_N/16], message1_avx[SABER_N/16], message2_avx[SABER_N/16], message3_avx[SABER_N/16];
@@ -774,7 +746,7 @@ void indcpa_kem_enc(
 		//------now calculate the v'
 
 		//-------unpack the public_key
-		BS2POLVECX4(pk0, pk1, pk2, pk3, pkcl_avx, pkcl_avx, pkcl_avx, pkcl_avx, SABER_P);
+		BS2POLVECX4(pk0, pk1, pk2, pk3, pkcl_avx0, pkcl_avx1, pkcl_avx2, pkcl_avx3, SABER_P);
 		// InnerProduct (truncate)
 		for(k=0;k<SABER_N/16;k++){
 			vprime0_avx[k]=_mm256_xor_si256(vprime0_avx[k],vprime0_avx[k]);
@@ -784,12 +756,10 @@ void indcpa_kem_enc(
 		}
 
 		// vector-vector scalar multiplication with mod p
-		// clock1=cpucycles();
-		count_mul++;
-		vector_vector_mul(pkcl_avx, b0_bucket, vprime0_avx);
-		vector_vector_mul(pkcl_avx, b1_bucket, vprime1_avx);
-		vector_vector_mul(pkcl_avx, b2_bucket, vprime2_avx);
-		vector_vector_mul(pkcl_avx, b3_bucket, vprime3_avx);
+		vector_vector_mul(pkcl_avx0, b0_bucket, vprime0_avx);
+		vector_vector_mul(pkcl_avx1, b1_bucket, vprime1_avx);
+		vector_vector_mul(pkcl_avx2, b2_bucket, vprime2_avx);
+		vector_vector_mul(pkcl_avx3, b3_bucket, vprime3_avx);
 
 		// Computation of v'+h1 
 		for(i=0;i<SABER_N/16;i++){//adding h1
@@ -914,8 +884,6 @@ void indcpa_kem_dec(
 		}
 
 		// InnerProduct(b', s, mod p)
-
-		count_mul++;
 
 		for(j=0;j<NUM_POLY;j++){
 			TC_eval(sksv0_avx[j], b0_bucket[j]);

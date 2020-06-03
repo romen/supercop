@@ -11,7 +11,20 @@ int crypto_kem_keypair4x(
 {
   int i;
  
-  indcpa_kem_keypair(pk0,sk0, pk1,sk1, pk2,sk2, pk3,sk3);  // sk[0:SABER_INDCPA_SECRETKEYBYTES-1] <-- sk
+  unsigned char seed_arr[4][SABER_SEEDBYTES];
+  unsigned char noiseseed_arr[4][SABER_COINBYTES];
+  unsigned char pseudorandom_key_arr[4][SABER_KEYBYTES];
+
+  // Generate randomness in proper sequesce for the four key-pair generation operations
+	for(i=0; i<4; i++)
+	{
+		randombytes(seed_arr[i], SABER_SEEDBYTES);
+		randombytes(noiseseed_arr[i], SABER_COINBYTES);
+		randombytes(pseudorandom_key_arr[i], SABER_KEYBYTES);
+	}	
+
+  indcpa_kem_keypair(pk0,sk0, pk1,sk1, pk2,sk2, pk3,sk3, seed_arr, noiseseed_arr);  // sk[0:SABER_INDCPA_SECRETKEYBYTES-1] <-- sk
+
   for(i=0;i<SABER_INDCPA_PUBLICKEYBYTES;i++)
 	{
 		// sk[SABER_INDCPA_SECRETKEYBYTES:SABER_INDCPA_SECRETKEYBYTES+SABER_INDCPA_SECRETKEYBYTES-1] <-- pk	
@@ -27,26 +40,13 @@ int crypto_kem_keypair4x(
 						pk0, pk1, pk2, pk3,SABER_INDCPA_PUBLICKEYBYTES);  
 
 
-  //randombytes(sk+SABER_SECRETKEYBYTES-SABER_KEYBYTES , SABER_KEYBYTES );    // Remaining part of sk contains a pseudo-random number. 
-								      																								// This is output when check in crypto_kem_dec() fails. 
-
-
-	randombytes(sk0+SABER_SECRETKEYBYTES-SABER_KEYBYTES , SABER_KEYBYTES );
-
 	for(i=0; i<SABER_KEYBYTES; i++)
 	{
-		sk1[SABER_SECRETKEYBYTES-SABER_KEYBYTES+i] = sk0[SABER_SECRETKEYBYTES-SABER_KEYBYTES+i];
-		sk2[SABER_SECRETKEYBYTES-SABER_KEYBYTES+i] = sk0[SABER_SECRETKEYBYTES-SABER_KEYBYTES+i];
-		sk3[SABER_SECRETKEYBYTES-SABER_KEYBYTES+i] = sk0[SABER_SECRETKEYBYTES-SABER_KEYBYTES+i];
+		sk0[i+SABER_SECRETKEYBYTES-SABER_KEYBYTES] = pseudorandom_key_arr[0][i];
+		sk1[i+SABER_SECRETKEYBYTES-SABER_KEYBYTES] = pseudorandom_key_arr[1][i];
+		sk2[i+SABER_SECRETKEYBYTES-SABER_KEYBYTES] = pseudorandom_key_arr[2][i];
+		sk3[i+SABER_SECRETKEYBYTES-SABER_KEYBYTES] = pseudorandom_key_arr[3][i];
 	}
-
-
-	/*
-	randombytes(sk0+SABER_SECRETKEYBYTES-SABER_KEYBYTES , SABER_KEYBYTES );
-	randombytes(sk1+SABER_SECRETKEYBYTES-SABER_KEYBYTES , SABER_KEYBYTES );
-	randombytes(sk2+SABER_SECRETKEYBYTES-SABER_KEYBYTES , SABER_KEYBYTES );
-	randombytes(sk3+SABER_SECRETKEYBYTES-SABER_KEYBYTES , SABER_KEYBYTES );
-	*/
 
 
   return(0);	
@@ -62,12 +62,10 @@ int crypto_kem_enc4x(
   unsigned char buf0[64], buf1[64], buf2[64], buf3[64];                          
   int i;
 	
-  	randombytes(buf0, 32); 
-	//randombytes(buf0, 32); randombytes(buf1, 32); randombytes(buf2, 32); randombytes(buf3, 32);
-	for(i=0; i<32; i++)
-	{
-		buf1[i] = buf0[i]; buf2[i] = buf0[i]; buf3[i] = buf0[i];
-	}	
+	randombytes(buf0, 32); 
+	randombytes(buf1, 32); 
+	randombytes(buf2, 32);
+	randombytes(buf3, 32);
 
 	//sha3_256(buf,buf,32);            			  // BUF[0:31] <-- random message (will be used as the key for client) 
 	sha3_256x4(buf0,buf1,buf2,buf3, buf0,buf1,buf2,buf3, 32);

@@ -16,7 +16,8 @@ uint64_t clock_samp, clock_arith, clock_load;
 void indcpa_keypair(unsigned char *pk0, unsigned char *sk0,
 					unsigned char *pk1, unsigned char *sk1,
 					unsigned char *pk2, unsigned char *sk2,
-					unsigned char *pk3, unsigned char *sk3);
+					unsigned char *pk3, unsigned char *sk3,
+					unsigned char seed_arr[4][SABER_SEEDBYTES], unsigned char noiseseed_arr[4][SABER_COINBYTES]);
 
 //void GenMatrix(polyvecNew *a, const unsigned char *seed);
 void GenMatrix(polyvec *a, const unsigned char *seed);
@@ -32,7 +33,8 @@ void indcpa_server(unsigned char *pk, unsigned char *b_prime, unsigned char *c, 
 void indcpa_kem_keypair(unsigned char *pk0, unsigned char *sk0,
 						unsigned char *pk1, unsigned char *sk1,
 						unsigned char *pk2, unsigned char *sk2,
-						unsigned char *pk3, unsigned char *sk3);
+						unsigned char *pk3, unsigned char *sk3,
+						unsigned char seed_arr[4][SABER_SEEDBYTES], unsigned char noiseseed_arr[4][SABER_COINBYTES]);
 
 //void indcpa_kem_enc(unsigned char *message, unsigned char *noiseseed, const unsigned char *pk, unsigned char *ciphertext);
 
