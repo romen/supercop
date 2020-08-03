@@ -8,7 +8,7 @@
 #include "smu.h"
 
 /* key pair generation */
-int crypto_dh_k298_ref_keypair(unsigned char *pk, unsigned char *sk) {
+int CRYPTO_NAMESPACE(keypair)(unsigned char *pk, unsigned char *sk) {
     /* var */
     __m128i px0, px1, px2;
     __m128i pl0, pl1, pl2;
@@ -46,7 +46,7 @@ int crypto_dh_k298_ref_keypair(unsigned char *pk, unsigned char *sk) {
 }
 
 /* shared secret establishment */
-int crypto_dh_k298_ref(unsigned char *out, const unsigned char *pk, const unsigned char *sk) {
+int CRYPTO_NAMESPACETOP(unsigned char *out, const unsigned char *pk, const unsigned char *sk) {
     /* var */
     __m128i px0, px1, px2;
     __m128i pl0, pl1, pl2;

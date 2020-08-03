@@ -461,9 +461,9 @@ const_all_but_high_98:
 .word 0
 .word 0
 .text
-.global crypto_core_invhrss701_avx2_internal
+.global CRYPTO_NAMESPACE(internal)
 .att_syntax prefix
-crypto_core_invhrss701_avx2_internal:
+CRYPTO_NAMESPACE(internal):
 push %r12
 push %r13
 push %r14
