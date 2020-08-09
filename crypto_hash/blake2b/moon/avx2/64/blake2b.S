@@ -7,7 +7,7 @@ pushq %rbp
 movl $128, %r10d
 movq %rsp, %rbp
 pushq %r14
-lea blake2b_sigma+192(%rip), %r14
+leaq blake2b_sigma+192(%rip), %r14
 pushq %r13
 pushq %r12
 pushq %rbx
@@ -97,7 +97,7 @@ vmovdqa %ymm0, %ymm2
 vmovdqa %ymm1, %ymm3
 vmovq %r8, %xmm5
 adcq $0, %r9
-lea blake2b_sigma(%rip), %rax
+leaq blake2b_sigma(%rip), %rax
 vpinsrq $1, %r9, %xmm5, %xmm4
 vmovdqa %ymm9, %ymm5
 vinserti128 $0x1, %xmm11, %ymm4, %ymm4
@@ -196,7 +196,7 @@ vmovdqu %ymm1, (%rdi)
 vmovdqu %ymm0, 32(%rdi)
 movq %r8, 64(%rdi)
 movq %r9, 72(%rdi)
-leaq -24(%rbp), %rsp
+leaq -32(%rbp), %rsp
 popq %rbx
 popq %r12
 popq %r13
@@ -205,6 +205,8 @@ popq %rbp
 ret
 FN_END blake2b_blocks_avx2
 
+
+.section .rodata
 
 .p2align 6
 blake2b_constants:

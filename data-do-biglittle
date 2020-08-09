@@ -459,6 +459,13 @@ def parse_args():
         help='data-run command',
     )
     parser.add_argument(
+        '-s',
+        '--summarize-cmd',
+        action='store',
+        default='./data-summarize',
+        help='data-summarize command',
+    )
+    parser.add_argument(
         '-H', '--hostname', action='store', default=node(), help='set hostname'
     )
     parser.add_argument(
@@ -507,10 +514,13 @@ def main(args=None):
     cores_data_init, cores_data_run = _siblings_cores2init_run(
         args, siblings, cores
     )
+    cores_data_summarize = cores_data_init
     log.debug("data init tasks: {}".format(len(cores_data_init)))
     log.debug("data run tasks: {}".format(len(cores_data_run)))
+    log.debug("data summarize tasks: {}".format(len(cores_data_summarize)))
     data_do(cores_data_init, args.init_cmd, args)
     data_do(cores_data_run, args.run_cmd, args)
+    data_do(cores_data_summarize, args.summarize_cmd, args)
 
 
 if __name__ == '__main__':

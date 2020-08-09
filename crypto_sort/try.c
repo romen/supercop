@@ -1,5 +1,5 @@
 /*
- * crypto_sort/try.c version 20180814
+ * crypto_sort/try.c version 20200809
  * D. J. Bernstein
  * Public domain.
  */
@@ -16,10 +16,15 @@ const char *primitiveimplementation = crypto_sort_IMPLEMENTATION;
 #else
 #define MAXTEST 4096
 #endif
+
+#ifdef TIMECOP
+#define LOOPS TIMECOP_LOOPS
+#else
 #ifdef SMALL
 #define LOOPS 1024
 #else
 #define LOOPS 4096
+#endif
 #endif
 
 static unsigned char *x;
@@ -87,7 +92,9 @@ void test(void)
     output_prepare(y2,y,bytes);
     memcpy(y,x,bytes);
     endianness(y,len);
+    poison(y,bytes);
     crypto_sort(y,len);
+    unpoison(y,bytes);
     endianness(y,len);
     checksum(y,bytes);
     output_compare(y2,y,bytes,"crypto_sort");
@@ -96,13 +103,17 @@ void test(void)
     double_canary(y2,y,bytes);
     memcpy(y2,x,bytes);
     endianness(y2,len);
+    poison(y2,bytes);
     crypto_sort(y2,len);
+    unpoison(y2,bytes);
     endianness(y2,len);
     if (memcmp(y2,y,bytes) != 0) fail("crypto_sort is nondeterministic");
 
     double_canary(y2,y,bytes);
     endianness(y2,len);
+    poison(y2,bytes);
     crypto_sort(y2,len);
+    unpoison(y2,bytes);
     endianness(y2,len);
     if (memcmp(y2,y,bytes) != 0) fail("crypto_sort is not idempotent");
   }

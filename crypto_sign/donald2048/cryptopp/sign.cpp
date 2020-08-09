@@ -94,7 +94,7 @@ int crypto_sign(
 	Integer x(sk, CRYPTO_NAMESPACE(SECRETKEYBYTES));
 	signer.AccessKey().Initialize(s_p, s_q, s_g, x);
 	signer.SignMessage(s_rng, m, mlen, sm);
-	memcpy(sm + CRYPTO_NAMESPACE(BYTES), m, mlen);
+	memmove(sm + CRYPTO_NAMESPACE(BYTES), m, mlen);
 	*smlen = mlen + CRYPTO_NAMESPACE(BYTES);
 	return 0;
 	} catch (...)
@@ -114,8 +114,9 @@ int crypto_sign_open(
 	Integer y(pk, CRYPTO_NAMESPACE(PUBLICKEYBYTES));
 	verifier.AccessKey().Initialize(s_p, s_q, s_g, y);
 	*mlen = smlen - CRYPTO_NAMESPACE(BYTES);
-	memcpy(m, sm + CRYPTO_NAMESPACE(BYTES), *mlen);
-	return verifier.VerifyMessage(m, (size_t)*mlen, sm, CRYPTO_NAMESPACE(BYTES)) ? 0 : -1;
+	bool v = verifier.VerifyMessage(sm + CRYPTO_NAMESPACE(BYTES), (size_t)*mlen, sm, CRYPTO_NAMESPACE(BYTES));
+	memmove(m, sm + CRYPTO_NAMESPACE(BYTES), *mlen);
+	return v ? 0 : -1;
 	} catch (...)
 	{
 		return -2;

@@ -19,3 +19,6 @@ extern void output_prepare(unsigned char *,unsigned char *,unsigned long long);
 extern void input_compare(const unsigned char *,const unsigned char *,unsigned long long,const char *);
 extern void output_compare(const unsigned char *,const unsigned char *,unsigned long long,const char *);
 extern unsigned long long myrandom(void);
+extern void poison(void *,unsigned long long);
+extern void unpoison(void *,unsigned long long);
+extern void randombytes_callback(unsigned char *,unsigned long long);

@@ -10,6 +10,7 @@
 #include <string.h>
 #include <immintrin.h>
 #include "crypto_aead.h"
+#include "crypto_declassify.h"
 
 #define ACCBY8
 
@@ -957,6 +958,8 @@ int crypto_aead_decrypt(
   unsigned char F = 0;
 
   for (i = 0;i < 16;++i) F |= (c[i+(*mlen)] != (T[i] ^ accum[15-i]));
+
+  crypto_declassify(&F,sizeof F);
   if (F)
     return -111;
 

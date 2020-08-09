@@ -386,13 +386,20 @@ do
               case "$incl" in
                 crypto_*_*)
                   [ -f "$securitymodelsdir/$abi/constbranchindex/$incl" ] || rm -f "$work/all-subroutines-allow-constbranchindex"
-                  [ -f "$securitymodelsdir/$abi/timingleaks/$incl" ] && touch "$work/some-subroutine-allows-timingleaks"
+                  [ -f "$securitymodelsdir/$abi/timingleaks/$incl" ] && touch "$work/some-subroutine-allows-timingleaks" || :
+
+                  if [ -f "$securitymodelsdir/$abi/constbranchindex/$incl" ] || [ -f "$securitymodelsdir/$abi/timingleaks/$incl" ]
+                  then
+                    :
+                  else
+                    echo "missing $incl"
+                  fi
                   ;;
               esac
             done
 
-            [ -f "$work/all-subroutines-allow-constbranchindex" ] && touch "$work/constbranchindex/allowed"
-            [ -f "$work/some-subroutine-allows-timingleaks" ] && touch "$work/timingleaks/allowed"
+            [ -f "$work/all-subroutines-allow-constbranchindex" ] && touch "$work/constbranchindex/allowed" || :
+            [ -f "$work/some-subroutine-allows-timingleaks" ] && touch "$work/timingleaks/allowed" || :
           else
             touch "$work/timingleaks/allowed"
           fi
@@ -431,7 +438,7 @@ do
           cp -p "measure-anything.c" "$work/compile/measure-anything.$language"
   
           touch "$work/compile/test-more.inc"
-          [ -f "$o/$p/supercop/test-more.inc" ] && cp -p "$o/$p/supercop/test-more.inc" "$work/compile/test-more.inc"
+          [ -f "$o/$p/supercop/test-more.inc" ] && cp -p "$o/$p/supercop/test-more.inc" "$work/compile/test-more.inc" || :
   
           cp -p MACROS "$work/compile/MACROS"
           cp -p PROTOTYPES.c "$work/compile/PROTOTYPES.c"
@@ -599,6 +606,41 @@ do
               echo "$version $shorthostname $abi $startdate $o $p/$security try $checksumsmall/$checksumbig $checksumok $cycles $checksumcycles $cyclespersecond $impl $compilerword" >&5
   
               compiledinfo "$version" "$shorthostname" "$abi" "$startdate" "$o" "$p/$security" "$implementationdir" "$compilerword" "$opi" "$language"
+
+              if [ ${TIMECOP+yes} ] && [ "$security" = "constbranchindex" ]
+              then
+                ok=1
+                killafter 300 \
+                $compiler -DSUPERCOP -DTIMECOP -DTIMECOP_LOOPS="$TIMECOP" \
+                  -I. -I"$include" -I"$include/$abi" -I"$include/$abi/$security" \
+                  -o try try.$language try-anything.$language \
+                  "$op.a" $trylibs >../errors 2>&1 || ok=0
+                cat ../errors \
+                | while read err
+                do
+                  echo "$version $shorthostname $abi $startdate $o $p/$security fromcompiler $implementationdir $compilerword try.$language $err" >&5
+                done
+                [ "$ok" = 1 ] || continue
+
+                if sh -c 'killafter 360 valgrind --error-exitcode=99 --track-origins=yes ./try || exit $?' >../outputs 2>../errors
+                then
+                  echo "$version $shorthostname $abi $startdate $o $p/$security timecop_pass $implementationdir $compilerword $TIMECOP $?" >&5
+                else
+                  if [ $? -eq "99" ] && grep -q "client request" ../outputs ../errors
+                  then
+                    word=timecop_fail
+                  else
+                    word=timecop_error
+                  fi
+                  echo "$version $shorthostname $abi $startdate $o $p/$security $word $implementationdir $compilerword error $?" >&5
+                  cat ../outputs ../errors \
+                  | while read err
+                  do
+                    echo "$version $shorthostname $abi $startdate $o $p/$security $word $implementationdir $compilerword $err" >&5
+                  done
+                fi
+
+              fi
   
               [ -s "../constbranchindex/bestc/median" ] && [ `cat "../constbranchindex/bestc/median"` -le $cycles ] && continue
               [ -s "../$security/bestc/median" ] && [ `cat "../$security/bestc/median"` -le $cycles ] && continue
@@ -677,7 +719,7 @@ do
     okabi \
     | while read abi
     do
-      include="-I. -I$include -I$include/$abi -I$include/$abi/constbranchindex"
+      includes="-I. -I$include -I$include/$abi -I$include/$abi/constbranchindex"
 
       libs=`"oklibs-$abi"`
       libs="$lib/$abi/cpucycles.o $libs"
@@ -696,7 +738,7 @@ do
       cp -pR knownrandombytes/* "$work"
 
       ( cd "$work" \
-        && env abi="$abi" libs="$libs" include="$include" sh do \
+        && env abi="$abi" libs="$libs" include="$includes" sh do \
         && cp -p "lib/$abi/knownrandombytes.o" "$lib/$abi/knownrandombytes.o"
       )
 
@@ -707,7 +749,7 @@ do
       cp -pR fastrandombytes/* "$work"
 
       ( cd "$work" \
-        && env abi="$abi" libs="$libs" include="$include" sh do \
+        && env abi="$abi" libs="$libs" include="$includes" sh do \
         && cp -p "lib/$abi/fastrandombytes.o" "$lib/$abi/fastrandombytes.o"
       )
     done

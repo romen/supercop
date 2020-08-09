@@ -236,7 +236,16 @@ do
         | sort \
         | while read f
         do
-          /bin/echo "$f" `adequatechecksum < $f`
+          case "$f" in
+            "$implementationdir"/goal-*) # existence matters but ignore contents
+              /bin/echo "$f" `adequatechecksum < /dev/null`
+              ;;
+            "$implementationdir"/warning-*) # ignore existence
+              ;;
+            *)
+              /bin/echo "$f" `adequatechecksum < $f`
+              ;;
+          esac
         done >&8
         for f in "$t2/try.c" "$t2/measure.c"
         do

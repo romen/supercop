@@ -1,5 +1,5 @@
 /*
- * crypto_decode/try.c version 20190423
+ * crypto_decode/try.c version 20200809
  * D. J. Bernstein
  * Public domain.
  */
@@ -10,10 +10,14 @@
 
 const char *primitiveimplementation = crypto_decode_IMPLEMENTATION;
 
+#ifdef TIMECOP
+#define LOOPS TIMECOP_LOOPS
+#else
 #ifdef SMALL
 #define LOOPS 1024
 #else
 #define LOOPS 4096
+#endif
 #endif
 
 static unsigned char *x;
@@ -73,7 +77,11 @@ void test(void)
   for (loop = 0;loop < LOOPS;++loop) {
     input_prepare(x2,x,xbytes);
     output_prepare(y2,y,ybytes);
+    poison(x,xbytes);
+    poison(y,ybytes);
     crypto_decode(y,x);
+    unpoison(x,xbytes);
+    unpoison(y,ybytes);
     endianness(y,crypto_decode_ITEMS);
     checksum(y,ybytes);
     output_compare(y2,y,ybytes,"crypto_decode");
@@ -81,7 +89,11 @@ void test(void)
 
     double_canary(x2,x,xbytes);
     double_canary(y2,y,ybytes);
+    poison(x2,xbytes);
+    poison(y2,ybytes);
     crypto_decode(y2,x2);
+    unpoison(x2,xbytes);
+    unpoison(y2,ybytes);
     endianness(y2,crypto_decode_ITEMS);
     if (memcmp(y2,y,ybytes) != 0) fail("crypto_decode is nondeterministic");
   }
