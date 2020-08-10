@@ -33,6 +33,18 @@ void allocate(void)
   y = alignedcalloc(crypto_verify_BYTES);
 }
 
+void unalign(void)
+{
+  ++x;
+  ++y;
+}
+
+void realign(void)
+{
+  --x;
+  --y;
+}
+
 void predoit(void)
 {
 }

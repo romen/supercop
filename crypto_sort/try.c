@@ -48,6 +48,22 @@ void allocate(void)
   y2 = alignedcalloc(crypto_sort_BYTES * alloclen);
 }
 
+void unalign(void)
+{
+  x += crypto_sort_BYTES;
+  y += crypto_sort_BYTES;
+  x2 += crypto_sort_BYTES;
+  y2 += crypto_sort_BYTES;
+}
+
+void realign(void)
+{
+  x -= crypto_sort_BYTES;
+  y -= crypto_sort_BYTES;
+  x2 -= crypto_sort_BYTES;
+  y2 -= crypto_sort_BYTES;
+}
+
 void predoit(void)
 {
   long long i;

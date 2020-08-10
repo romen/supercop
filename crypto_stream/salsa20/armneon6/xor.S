@@ -342,7 +342,7 @@ CRYPTO_NAMESPACE(xor):
 vpush {q4,q5,q6,q7}
 mov r12,sp
 sub sp,sp,#352
-and sp,sp,#0xffffffe0
+bic sp,sp,#15
 
 # qhasm: stack64 stack_r45
 

@@ -431,7 +431,7 @@ GLOBAL_HIDDEN_FN CRYPTO_NAMESPACE(chacha)
 stmfd sp!, {r4-r7, lr}
 mov r12, sp
 sub sp, sp, #64
-and sp, sp, #0xffffff80
+bic sp, sp, #127
 ldmia r0!, {r4-r7}
 stmia sp!, {r4-r7}
 ldmia r0!, {r4-r7}
@@ -467,7 +467,7 @@ GLOBAL_HIDDEN_FN CRYPTO_NAMESPACE(xchacha)
 stmfd sp!, {r4-r6, lr}
 mov r7, sp
 sub sp, sp, #64
-and sp, sp, #0xffffff80
+bic sp, sp, #127
 mov r4, r2
 mov r5, r3
 add r6, r1, #16

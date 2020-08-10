@@ -622,23 +622,26 @@ do
                 done
                 [ "$ok" = 1 ] || continue
 
-                if sh -c 'killafter 360 valgrind --error-exitcode=99 --track-origins=yes ./try || exit $?' >../outputs 2>../errors
+                if sh -c 'killafter 360 valgrind -q --error-exitcode=99 --track-origins=yes ./try || exit $?' >../outputs 2>../errors
                 then
                   echo "$version $shorthostname $abi $startdate $o $p/$security timecop_pass $implementationdir $compilerword $TIMECOP $?" >&5
+                  word=timecop_output
                 else
-                  if [ $? -eq "99" ] && grep -q "client request" ../outputs ../errors
+                  exitcode=$?
+                  if [ "$exitcode" = "99" ] && grep -q "client request" ../outputs ../errors
                   then
                     word=timecop_fail
                   else
                     word=timecop_error
                   fi
-                  echo "$version $shorthostname $abi $startdate $o $p/$security $word $implementationdir $compilerword error $?" >&5
-                  cat ../outputs ../errors \
-                  | while read err
-                  do
-                    echo "$version $shorthostname $abi $startdate $o $p/$security $word $implementationdir $compilerword $err" >&5
-                  done
+                  echo "$version $shorthostname $abi $startdate $o $p/$security $word $implementationdir $compilerword error $exitcode" >&5
                 fi
+
+                cat ../outputs ../errors \
+                | while read err
+                do
+                  echo "$version $shorthostname $abi $startdate $o $p/$security $word $implementationdir $compilerword $err" >&5
+                done
 
               fi
   

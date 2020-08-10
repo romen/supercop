@@ -92,7 +92,7 @@ cmp  $256,%rdx
 
 jb ._bytesbetween1and255
 
-movdqa 0(%r8),%xmm0
+movdqu 0(%r8),%xmm0
 
 pshufd $0x55,%xmm0,%xmm1
 
@@ -110,7 +110,7 @@ movdqa %xmm2,32(%rsp)
 
 movdqa %xmm3,48(%rsp)
 
-movdqa 16(%r8),%xmm0
+movdqu 16(%r8),%xmm0
 
 pshufd $0x55,%xmm0,%xmm1
 
@@ -128,7 +128,7 @@ movdqa %xmm2,96(%rsp)
 
 movdqa %xmm3,112(%rsp)
 
-movdqa 32(%r8),%xmm0
+movdqu 32(%r8),%xmm0
 
 pshufd $0x55,%xmm0,%xmm1
 
@@ -146,7 +146,7 @@ movdqa %xmm2,160(%rsp)
 
 movdqa %xmm3,176(%rsp)
 
-movdqa 48(%r8),%xmm0
+movdqu 48(%r8),%xmm0
 
 pshufd $0xaa,%xmm0,%xmm1
 
@@ -1166,13 +1166,13 @@ leaq 320(%rsp),%rsi
 
 movq %rdx,288(%rsp)
 
-movdqa 0(%r8),%xmm0
+movdqu 0(%r8),%xmm0
 
-movdqa 16(%r8),%xmm1
+movdqu 16(%r8),%xmm1
 
-movdqa 32(%r8),%xmm2
+movdqu 32(%r8),%xmm2
 
-movdqa 48(%r8),%xmm3
+movdqu 48(%r8),%xmm3
 
 mov  $12,%rdx
 
@@ -1292,21 +1292,25 @@ paddd 32(%r8),%xmm2
 
 paddd 48(%r8),%xmm3
 
-pxor 0(%rsi),%xmm0
+movdqu 0(%rsi),%xmm4
+pxor %xmm4,%xmm0
 
-pxor 16(%rsi),%xmm1
+movdqu 16(%rsi),%xmm4
+pxor %xmm4,%xmm1
 
-pxor 32(%rsi),%xmm2
+movdqu 32(%rsi),%xmm4
+pxor %xmm4,%xmm2
 
-pxor 48(%rsi),%xmm3
+movdqu 48(%rsi),%xmm4
+pxor %xmm4,%xmm3
 
-movdqa %xmm0,0(%rdi)
+movdqu %xmm0,0(%rdi)
 
-movdqa %xmm1,16(%rdi)
+movdqu %xmm1,16(%rdi)
 
-movdqa %xmm2,32(%rdi)
+movdqu %xmm2,32(%rdi)
 
-movdqa %xmm3,48(%rdi)
+movdqu %xmm3,48(%rdi)
 
 movq 288(%rsp),%rdx
 

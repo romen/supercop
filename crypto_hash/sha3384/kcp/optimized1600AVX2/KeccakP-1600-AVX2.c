@@ -40,13 +40,13 @@ typedef unsigned long long  UINT64;
 typedef long long           INT64;
 
 //*******************
-struct keccak_state_t
+typedef struct keccak_state_t
 //*******************
 {
     __m256i a0, a1, a2, a3, a4; //a[row, 0..3] rows
     __m256i c4;                 //a[0..3, 4] column
     __m256i a44;                //a[4, 4]
-};
+} keccak_state_t;
 
 #define SET(i0, i1, i2, i3)             _mm256_setr_epi64x(i0, i1, i2, i3)
 #define XOR(a, b)                       _mm256_xor_si256(a, b)
@@ -67,36 +67,34 @@ struct keccak_state_t
 
 #define LOAD0(p)                        _mm256_castsi128_si256(_mm_move_epi64(*(__m128i *)(p)))
 
-#define ROLV_TYPE       static __m256i
+#define ROLV_TYPE       __m256i
 
 #ifdef __GNUC__
-    #define _ROLV_TYPE  volatile static __m256i
+    #define _ROLV_TYPE  volatile __m256i
 #else
-    #define _ROLV_TYPE  static __m256i
+    #define _ROLV_TYPE  __m256i
 #endif
 
 #define ROLV_CONST(name, i0, i1, i2, i3) \
-    ROLV_TYPE   SLLV##name = SET(i0, i1, i2, i3); \
-    ROLV_TYPE   SRLV##name = SET(64 - i0, 64 - i1, 64 - i2, 64 - i3);
+    ROLV_TYPE  SLLV##name = SET(i0, i1, i2, i3); \
+    ROLV_TYPE  SRLV##name = SET(64 - i0, 64 - i1, 64 - i2, 64 - i3);
 
 #define _ROLV_CONST(name, i0, i1, i2, i3) \
     _ROLV_TYPE  SLLV##name = SET(i0, i1, i2, i3); \
     _ROLV_TYPE  SRLV##name = SET(64 - i0, 64 - i1, 64 - i2, 64 - i3);
 
-// Rotation constants w/o "volatile" attribute.
-ROLV_CONST(A0,  0,  1, 62, 28)
-ROLV_CONST(A1, 36, 44,  6, 55)
-ROLV_CONST(A2,  3, 10, 43, 25)
-ROLV_CONST(A3, 41, 45, 15, 21)
-ROLV_CONST(A4, 18,  2, 61, 56)
-ROLV_CONST(C4, 27, 20, 39,  8)
-
-// Rotation constants with "volatile" attribute (GC only).
-_ROLV_CONST(_A0,  0,  1, 62, 28)
-_ROLV_CONST(_A1, 36, 44,  6, 55)
-_ROLV_CONST(_A2,  3, 10, 43, 25)
-_ROLV_CONST(_A3, 41, 45, 15, 21)
-_ROLV_CONST(_A4, 18,  2, 61, 56)
+#define KECCAK_CONSTANTS \
+ROLV_CONST(A0,  0,  1, 62, 28) \
+ROLV_CONST(A1, 36, 44,  6, 55) \
+ROLV_CONST(A2,  3, 10, 43, 25) \
+ROLV_CONST(A3, 41, 45, 15, 21) \
+ROLV_CONST(A4, 18,  2, 61, 56) \
+ROLV_CONST(C4, 27, 20, 39,  8) \
+_ROLV_CONST(_A0,  0,  1, 62, 28) \
+_ROLV_CONST(_A1, 36, 44,  6, 55) \
+_ROLV_CONST(_A2,  3, 10, 43, 25) \
+_ROLV_CONST(_A3, 41, 45, 15, 21) \
+_ROLV_CONST(_A4, 18,  2, 61, 56) \
 _ROLV_CONST(_C4, 27, 20, 39,  8)
 
 #define ROLV(a, name) \
@@ -121,30 +119,30 @@ _ROLV_CONST(_C4, 27, 20, 39,  8)
     __m256i b04, b14, b24, b34, b44; \
     __m256i r0, r1, r2, r3; \
 \
-    keccak_state_t  &s = *(keccak_state_t *)state; \
+    keccak_state_t  *s = (keccak_state_t *) state; \
     ptrdiff_t       round_i;
 
 /******************/\
 #define KECCAK_LOAD \
 /******************/\
-    a0 = LOAD(&s.a0); \
-    a1 = LOAD(&s.a1); \
-    a2 = LOAD(&s.a2); \
-    a3 = LOAD(&s.a3); \
-    a4 = LOAD(&s.a4); \
-    c4 = LOAD(&s.c4); \
-    a44 = LOAD(&s.a44);
+    a0 = LOAD(&s->a0); \
+    a1 = LOAD(&s->a1); \
+    a2 = LOAD(&s->a2); \
+    a3 = LOAD(&s->a3); \
+    a4 = LOAD(&s->a4); \
+    c4 = LOAD(&s->c4); \
+    a44 = LOAD(&s->a44);
 
 /*******************/\
 #define KECCAK_STORE \
 /*******************/\
-    STORE(&s.a0, a0); \
-    STORE(&s.a1, a1); \
-    STORE(&s.a2, a2); \
-    STORE(&s.a3, a3); \
-    STORE(&s.a4, a4); \
-    STORE(&s.c4, c4); \
-    STORE(&s.a44, a44);
+    STORE(&s->a0, a0); \
+    STORE(&s->a1, a1); \
+    STORE(&s->a2, a2); \
+    STORE(&s->a3, a3); \
+    STORE(&s->a4, a4); \
+    STORE(&s->c4, c4); \
+    STORE(&s->a44, a44);
 
 #define KECCAK_NO_ASM // !!!
 #if defined(KECCAK_NO_ASM) || !(defined(__x86_64__) || defined(__X86_64__) || defined(__LP64__) || \
@@ -468,7 +466,7 @@ void KeccakP1600_AddByte(void *state, UINT8 byte, size_t offset)
 void KeccakP1600_AddBytes(void *state, const UINT8 *data, size_t offset, size_t length)
 //*****************************************************************************
 {
-    keccak_state_t  &s = *(keccak_state_t *)state;
+    keccak_state_t  *s = (keccak_state_t *)state;
     UINT64      *d = (UINT64 *)data;
     UINT8       *t1, *d1;
     UINT64      t[25];
@@ -503,20 +501,20 @@ void KeccakP1600_AddBytes(void *state, const UINT8 *data, size_t offset, size_t 
             t1[i] ^= d1[i];
     }
 
-    s.a0 = LOAD(t + 0*5);
-    s.a1 = LOAD(t + 1*5);
-    s.a2 = LOAD(t + 2*5);
-    s.a3 = LOAD(t + 3*5);
-    s.a4 = LOAD(t + 4*5);
-    s.c4 = SET(t[0*5 + 4], t[1*5 + 4], t[2*5 + 4], t[3*5 + 4]);
-    s.a44 = _mm256_set1_epi64x(t[4*5 + 4]);
+    s->a0 = LOAD(t + 0*5);
+    s->a1 = LOAD(t + 1*5);
+    s->a2 = LOAD(t + 2*5);
+    s->a3 = LOAD(t + 3*5);
+    s->a4 = LOAD(t + 4*5);
+    s->c4 = SET(t[0*5 + 4], t[1*5 + 4], t[2*5 + 4], t[3*5 + 4]);
+    s->a44 = _mm256_set1_epi64x(t[4*5 + 4]);
 } //KeccakP1600_AddBytes
 
 //***********************************************************************************
 void KeccakP1600_OverwriteBytes(void *state, const UINT8 *data, size_t offset, size_t length)
 //***********************************************************************************
 {
-    keccak_state_t  &s = *(keccak_state_t *)state;
+    keccak_state_t  *s = (keccak_state_t *)state;
     UINT64      *d = (UINT64 *)data;
     UINT8       *t1, *d1;
     UINT64      t[25];
@@ -541,32 +539,32 @@ void KeccakP1600_OverwriteBytes(void *state, const UINT8 *data, size_t offset, s
             t1[i] = d1[i];
     }
 
-    s.a0 = LOAD(t + 0*5);
-    s.a1 = LOAD(t + 1*5);
-    s.a2 = LOAD(t + 2*5);
-    s.a3 = LOAD(t + 3*5);
-    s.a4 = LOAD(t + 4*5);
-    s.c4 = SET(t[0*5 + 4], t[1*5 + 4], t[2*5 + 4], t[3*5 + 4]);
-    s.a44 = _mm256_set1_epi64x(t[4*5 + 4]);
+    s->a0 = LOAD(t + 0*5);
+    s->a1 = LOAD(t + 1*5);
+    s->a2 = LOAD(t + 2*5);
+    s->a3 = LOAD(t + 3*5);
+    s->a4 = LOAD(t + 4*5);
+    s->c4 = SET(t[0*5 + 4], t[1*5 + 4], t[2*5 + 4], t[3*5 + 4]);
+    s->a44 = _mm256_set1_epi64x(t[4*5 + 4]);
 } //KeccakP1600_OverwriteBytes
 
 //*********************************************************
 void KeccakP1600_OverwriteWithZeroes(void *state, size_t byteCount)
 //*********************************************************
 {
-    keccak_state_t  &s = *(keccak_state_t *)state;
+    keccak_state_t  *s = (keccak_state_t *)state;
     UINT64      t[25];
 
     KeccakP1600_ExtractBytes(state, (UINT8 *)t, 0, sizeof(t));
     memset(t, 0, byteCount);
 
-    s.a0 = LOAD(t + 0*5);
-    s.a1 = LOAD(t + 1*5);
-    s.a2 = LOAD(t + 2*5);
-    s.a3 = LOAD(t + 3*5);
-    s.a4 = LOAD(t + 4*5);
-    s.c4 = SET(t[0*5 + 4], t[1*5 + 4], t[2*5 + 4], t[3*5 + 4]);
-    s.a44 = _mm256_set1_epi64x(t[4*5 + 4]);
+    s->a0 = LOAD(t + 0*5);
+    s->a1 = LOAD(t + 1*5);
+    s->a2 = LOAD(t + 2*5);
+    s->a3 = LOAD(t + 3*5);
+    s->a4 = LOAD(t + 4*5);
+    s->c4 = SET(t[0*5 + 4], t[1*5 + 4], t[2*5 + 4], t[3*5 + 4]);
+    s->a44 = _mm256_set1_epi64x(t[4*5 + 4]);
 } //KeccakP1600_OverwriteWithZeroes
 
 //__KeccakP1600_ExtractBytes
@@ -574,25 +572,25 @@ void KeccakP1600_OverwriteWithZeroes(void *state, size_t byteCount)
 void KeccakP1600_ExtractBytes(const void *state, UINT8 *data, size_t offset, size_t length)
 //*********************************************************************************
 {
-    keccak_state_t  &s = *(keccak_state_t *)state;
+    keccak_state_t  *s = (keccak_state_t *)state;
     UINT64  t[25];
     UINT64  *d = (!offset && (length >= sizeof(t))) ? (UINT64 *)data : t;
-    UINT64  *c4 = (UINT64 *)&s.c4;
+    UINT64  *c4 = (UINT64 *)&s->c4;
 
     if ((d == t) && (length > sizeof(t)))
         length = sizeof(t);
 
-    STORE(d + 0*5, s.a0);
-    STORE(d + 1*5, s.a1);
-    STORE(d + 2*5, s.a2);
-    STORE(d + 3*5, s.a3);
-    STORE(d + 4*5, s.a4);
+    STORE(d + 0*5, s->a0);
+    STORE(d + 1*5, s->a1);
+    STORE(d + 2*5, s->a2);
+    STORE(d + 3*5, s->a3);
+    STORE(d + 4*5, s->a4);
 
     d[0*5 + 4] = c4[0];
     d[1*5 + 4] = c4[1];
     d[2*5 + 4] = c4[2];
     d[3*5 + 4] = c4[3];
-    d[4*5 + 4] = c4[4]; //s.a44[0]
+    d[4*5 + 4] = c4[4]; //s->a44[0]
 
     if (d == t)
         memcpy(data, (UINT8 *)t + offset, length);
@@ -634,6 +632,8 @@ void KeccakP1600_ExtractAndAddBytes(const void *state, const UINT8 *input, UINT8
 void KeccakP1600_Permute_Nrounds(void *state, unsigned int nrounds)
 //***************************
 {
+    KECCAK_CONSTANTS
+
     KECCAK_PERMUTE_VARS
 
     KECCAK_LOAD
@@ -647,6 +647,8 @@ void KeccakP1600_Permute_Nrounds(void *state, unsigned int nrounds)
 void KeccakP1600_Permute_24rounds(void *state)
 //***************************
 {
+    KECCAK_CONSTANTS
+
     KECCAK_PERMUTE_VARS
 
     KECCAK_LOAD
@@ -660,6 +662,8 @@ void KeccakP1600_Permute_24rounds(void *state)
 void KeccakP1600_Permute_12rounds(void *state)
 //***************************
 {
+    KECCAK_CONSTANTS
+
     KECCAK_PERMUTE_VARS
 
     KECCAK_LOAD
@@ -674,6 +678,8 @@ void KeccakP1600_Permute_12rounds(void *state)
 size_t KeccakF1600_FastLoop_Absorb(void *state, size_t laneCount, const UINT8 *data, size_t dataByteLen)
 //**************************************************************************************************************
 {
+    KECCAK_CONSTANTS
+
     KECCAK_PERMUTE_VARS
     const UINT64    *d;
     ptrdiff_t       di;

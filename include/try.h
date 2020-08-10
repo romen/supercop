@@ -4,7 +4,9 @@
 /* provided by try.c: */
 extern const char *primitiveimplementation;
 extern void preallocate(void);
-extern void allocate(void);;
+extern void allocate(void);
+extern void unalign(void);
+extern void realign(void);
 extern void test(void);
 extern void predoit(void);
 extern void doit(void);

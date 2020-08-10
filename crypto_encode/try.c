@@ -37,6 +37,22 @@ void allocate(void)
   y2 = alignedcalloc(crypto_encode_STRBYTES);
 }
 
+void unalign(void)
+{
+  ++x;
+  ++y;
+  ++x2;
+  ++y2;
+}
+
+void realign(void)
+{
+  --x;
+  --y;
+  --x2;
+  --y2;
+}
+
 void predoit(void)
 {
   long long i;

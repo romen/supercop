@@ -322,10 +322,14 @@ int main()
   allocate();
   srandom(getpid());
 
+  unalign();
+
   cycles[0] = cpucycles();
   test();
   cycles[1] = cpucycles();
   checksumcycles = cycles[1] - cycles[0];
+
+  realign();
 
   predoit();
   for (i = 0;i <= TIMINGS;++i) {

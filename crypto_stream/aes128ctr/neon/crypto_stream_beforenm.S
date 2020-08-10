@@ -128,7 +128,7 @@ CRYPTO_NAMESPACE(beforenm):
 vpush {q4,q5,q6,q7}
 mov r12,sp
 sub sp,sp,#0
-and sp,sp,#0xffffffe0
+bic sp,sp,#15
 
 # qhasm:   xmm0 = mem128[input_1]
 # asm 1: vld1.8 {>xmm0=reg128#1%bot->xmm0=reg128#1%top},[<input_1=int32#2]
