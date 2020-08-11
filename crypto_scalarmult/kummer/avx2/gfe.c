@@ -1,4 +1,5 @@
 #include "gfe.h"
+#include "consts.h"
 
 typedef unsigned long long u64;
 

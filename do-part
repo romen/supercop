@@ -273,9 +273,14 @@ cat OPERATIONS \
 | while read o
 do
   [ -d "$o" ] || continue
-  [ -k "$o" ] 2>&1 && continue
+
   # not sure -k is portable enough, but failures aren't a disaster
   # alternative: find "$o" -prune -perm -01000 -exec sh -c 'exit 1' '{}' +
+  if [ -k "$o" ] 2>&1
+  then
+    echo "=== `date` === sticky $o"
+    continue
+  fi
 
   [ x"$focus" = x"all" -o x"$focus" = x"used" -o x"$focus" = x"$o" ] || continue
 
@@ -285,7 +290,12 @@ do
   | while read p
   do
     [ -d "$o/$p" ] || continue
-    [ -k "$o/$p" ] 2>&1 && continue
+
+    if [ -k "$o/$p" ] 2>&1
+    then
+      echo "=== `date` === sticky $o/$p"
+      continue
+    fi
 
     expectedchecksumbig=''
     [ -f "$o/$p/checksumbig" ] && expectedchecksumbig=`cat "$o/$p/checksumbig"`
@@ -353,7 +363,11 @@ do
           implementationdir=`dirname $doth`
           opi=`echo "$implementationdir/$security" | tr ./- ___`
 
-          [ -k "$implementationdir" ] 2>&1 && continue
+          if [ -k "$implementationdir" ] 2>&1
+          then
+            echo "=== `date` === sticky $implementationdir"
+            continue
+          fi
 
           rm -f "$work/$security/allowed"
 

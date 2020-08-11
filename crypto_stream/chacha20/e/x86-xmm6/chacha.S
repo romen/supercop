@@ -509,7 +509,7 @@ jb ._bytesbetween1and255
 # qhasm:   z0 = *(int128 *) (x + 0)
 # asm 1: movdqa 0(<x=int32#3),>z0=int6464#1
 # asm 2: movdqa 0(<x=%edx),>z0=%xmm0
-movdqa 0(%edx),%xmm0
+movdqu 0(%edx),%xmm0
 
 # qhasm:   z1 = z0[1,1,1,1]
 # asm 1: pshufd $0x55,<z0=int6464#1,>z1=int6464#2
@@ -554,7 +554,7 @@ movdqa %xmm3,80(%esp)
 # qhasm:   z4 = *(int128 *) (x + 16)
 # asm 1: movdqa 16(<x=int32#3),>z4=int6464#1
 # asm 2: movdqa 16(<x=%edx),>z4=%xmm0
-movdqa 16(%edx),%xmm0
+movdqu 16(%edx),%xmm0
 
 # qhasm:   z5 = z4[1,1,1,1]
 # asm 1: pshufd $0x55,<z4=int6464#1,>z5=int6464#2
@@ -599,7 +599,7 @@ movdqa %xmm3,144(%esp)
 # qhasm:   z8 = *(int128 *) (x + 32)
 # asm 1: movdqa 32(<x=int32#3),>z8=int6464#1
 # asm 2: movdqa 32(<x=%edx),>z8=%xmm0
-movdqa 32(%edx),%xmm0
+movdqu 32(%edx),%xmm0
 
 # qhasm:   z9 = z8[1,1,1,1]
 # asm 1: pshufd $0x55,<z8=int6464#1,>z9=int6464#2
@@ -644,7 +644,7 @@ movdqa %xmm3,208(%esp)
 # qhasm:   z12 = *(int128 *) (x + 48)
 # asm 1: movdqa 48(<x=int32#3),>z12=int6464#1
 # asm 2: movdqa 48(<x=%edx),>z12=%xmm0
-movdqa 48(%edx),%xmm0
+movdqu 48(%edx),%xmm0
 
 # qhasm:   z14 = z12[2,2,2,2]
 # asm 1: pshufd $0xaa,<z12=int6464#1,>z14=int6464#2
@@ -3684,22 +3684,22 @@ movl %ebx,24(%esp)
 # qhasm: diag0 = *(int128 *) (x + 0)
 # asm 1: movdqa 0(<x=int32#3),>diag0=int6464#1
 # asm 2: movdqa 0(<x=%edx),>diag0=%xmm0
-movdqa 0(%edx),%xmm0
+movdqu 0(%edx),%xmm0
 
 # qhasm: diag1 = *(int128 *) (x + 16)
 # asm 1: movdqa 16(<x=int32#3),>diag1=int6464#2
 # asm 2: movdqa 16(<x=%edx),>diag1=%xmm1
-movdqa 16(%edx),%xmm1
+movdqu 16(%edx),%xmm1
 
 # qhasm: diag2 = *(int128 *) (x + 32)
 # asm 1: movdqa 32(<x=int32#3),>diag2=int6464#3
 # asm 2: movdqa 32(<x=%edx),>diag2=%xmm2
-movdqa 32(%edx),%xmm2
+movdqu 32(%edx),%xmm2
 
 # qhasm: diag3 = *(int128 *) (x + 48)
 # asm 1: movdqa 48(<x=int32#3),>diag3=int6464#4
 # asm 2: movdqa 48(<x=%edx),>diag3=%xmm3
-movdqa 48(%edx),%xmm3
+movdqu 48(%edx),%xmm3
 
 # qhasm: i = 20
 # asm 1: mov  $20,>i=int32#1
@@ -4011,42 +4011,46 @@ paddd 48(%edx),%xmm3
 # qhasm: uint32323232 diag0 ^= *(int128 *) (m + 0)
 # asm 1: pxor 0(<m=int32#5),<diag0=int6464#1
 # asm 2: pxor 0(<m=%esi),<diag0=%xmm0
-pxor 0(%esi),%xmm0
+movdqu 0(%esi),%xmm4
+pxor %xmm4,%xmm0
 
 # qhasm: uint32323232 diag1 ^= *(int128 *) (m + 16)
 # asm 1: pxor 16(<m=int32#5),<diag1=int6464#2
 # asm 2: pxor 16(<m=%esi),<diag1=%xmm1
-pxor 16(%esi),%xmm1
+movdqu 16(%esi),%xmm4
+pxor %xmm4,%xmm1
 
 # qhasm: uint32323232 diag2 ^= *(int128 *) (m + 32)
 # asm 1: pxor 32(<m=int32#5),<diag2=int6464#3
 # asm 2: pxor 32(<m=%esi),<diag2=%xmm2
-pxor 32(%esi),%xmm2
+movdqu 32(%esi),%xmm4
+pxor %xmm4,%xmm2
 
 # qhasm: uint32323232 diag3 ^= *(int128 *) (m + 48)
 # asm 1: pxor 48(<m=int32#5),<diag3=int6464#4
 # asm 2: pxor 48(<m=%esi),<diag3=%xmm3
-pxor 48(%esi),%xmm3
+movdqu 48(%esi),%xmm4
+pxor %xmm4,%xmm3
 
 # qhasm: *(int128 *) (out + 0) = diag0
 # asm 1: movdqa <diag0=int6464#1,0(<out=int32#6)
 # asm 2: movdqa <diag0=%xmm0,0(<out=%edi)
-movdqa %xmm0,0(%edi)
+movdqu %xmm0,0(%edi)
 
 # qhasm: *(int128 *) (out + 16) = diag1
 # asm 1: movdqa <diag1=int6464#2,16(<out=int32#6)
 # asm 2: movdqa <diag1=%xmm1,16(<out=%edi)
-movdqa %xmm1,16(%edi)
+movdqu %xmm1,16(%edi)
 
 # qhasm: *(int128 *) (out + 32) = diag2
 # asm 1: movdqa <diag2=int6464#3,32(<out=int32#6)
 # asm 2: movdqa <diag2=%xmm2,32(<out=%edi)
-movdqa %xmm2,32(%edi)
+movdqu %xmm2,32(%edi)
 
 # qhasm: *(int128 *) (out + 48) = diag3
 # asm 1: movdqa <diag3=int6464#4,48(<out=int32#6)
 # asm 2: movdqa <diag3=%xmm3,48(<out=%edi)
-movdqa %xmm3,48(%edi)
+movdqu %xmm3,48(%edi)
 
 # qhasm:   bytes = bytes_backup
 # asm 1: movl <bytes_backup=stack32#7,>bytes=int32#4

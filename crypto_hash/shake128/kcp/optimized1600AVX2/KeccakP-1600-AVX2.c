@@ -14,6 +14,8 @@ http://creativecommons.org/publicdomain/zero/1.0/
 #include <stddef.h>
 #include <string.h>
 
+#include "namespace.h"
+
 #ifdef __GNUC__
     #include <x86intrin.h>
 #else
