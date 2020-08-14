@@ -293,12 +293,20 @@ void crypto_declassify(void *x,unsigned long long xlen)
 #endif
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void randombytes_callback(unsigned char *x,unsigned long long xlen)
 {
 #ifdef TIMECOP
   poison(x,xlen);
 #endif
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 static unsigned char randombyte[1];
 

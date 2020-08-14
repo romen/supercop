@@ -228,7 +228,7 @@ def _get_arch():
     return arm, armv7, mipsel, mips64el, aarch64, i686, x86_64, etc.
 
     >>> arches = ['arm', 'armv7', 'mipsel', 'mips64el', 'aarch64',
-    ...          'i686', 'x86_64']
+    ...          'i686', 'x86_64', 'riscv32', 'riscv64']
     >>> _get_arch() in arches
     True
     '''
@@ -259,7 +259,7 @@ def _make_hostname(args, core):
     >>> args.hostname = 'host'
     >>> _MAX_FREQ_FMT = 'samples/cpuinfo_max_freq/cpu{}'
     >>> info = 'samples/proc_cpuinfo_x86_64'
-    >>> thread_ids = _machine2threadslist(info)
+    >>> thread_ids = _machine2threadslist(_file=info)
     >>> core_models = _machine2coremodels(_f=info)
     >>> cores = _cores2detailedcores(core_models, _fmt=_MAX_FREQ_FMT)
     >>> for core in cores:
@@ -297,9 +297,11 @@ def _siblings_cores2init_run(args, siblings, cores):
 
     >>> args = parse_args()
     >>> info = 'samples/proc_cpuinfo_x86_64'
-    >>> thread_ids = _machine2threadslist(info)
-    >>> siblings = _threadslist2coreslist(thread_ids)
-    >>> cores = _cores2detailedcores(_machine2coremodels(_f=info))
+    >>> _SIBLINGS_FMT = 'samples/topology/cpu{}'
+    >>> _MAX_FREQ_FMT = 'samples/cpuinfo_max_freq/cpu{}'
+    >>> thread_ids = _machine2threadslist(_file=info)
+    >>> siblings = _threadslist2coreslist(thread_ids, _file=_SIBLINGS_FMT)
+    >>> cores = _cores2detailedcores(_machine2coremodels(_f=info), _fmt=_MAX_FREQ_FMT)
     >>> cores_data_init, cores_data_run = _siblings_cores2init_run(
     ...    args, siblings, cores
     ... )
@@ -345,11 +347,12 @@ def _cores2cores_w_shorthostname(args, cores):
     *_cores2cores_w_shorthostname* takes *args* and *cores* and returns an
     augmented copy of *cores* which has a new shorthostname key for each core.
 
+    >>> _SIBLINGS_FMT = 'samples/topology/cpu{}'
     >>> _MAX_FREQ_FMT = 'samples/cpuinfo_max_freq/cpu{}'
     >>> info = 'samples/proc_cpuinfo_x86_64'
     >>> args = parse_args()
     >>> thread_ids = _machine2threadslist(info)
-    >>> siblings = _threadslist2coreslist(thread_ids)
+    >>> siblings = _threadslist2coreslist(thread_ids, _file=_SIBLINGS_FMT)
     >>> core_models = _machine2coremodels(_f=info)
     >>> cores = _cores2detailedcores(core_models, _fmt=_MAX_FREQ_FMT)
     >>> data_init, data_run = [], []
@@ -392,10 +395,12 @@ def data_do(cores, cmd, args):
     >>> args.verbose = False
     >>> args.hostname = 'host'
     >>> info = 'samples/proc_cpuinfo_x86_64'
+    >>> _SIBLINGS_FMT = 'samples/topology/cpu{}'
+    >>> _MAX_FREQ_FMT = 'samples/cpuinfo_max_freq/cpu{}'
     >>> thread_ids = _machine2threadslist(info)
-    >>> siblings = _threadslist2coreslist(thread_ids)
+    >>> siblings = _threadslist2coreslist(thread_ids, _file=_SIBLINGS_FMT)
     >>> core_models = _machine2coremodels(_f=info)
-    >>> cores = _cores2detailedcores(core_models)
+    >>> cores = _cores2detailedcores(core_models, _fmt=_MAX_FREQ_FMT)
     >>> cores_data_init, cores_data_run = _siblings_cores2init_run(
     ...    args, siblings, cores
     ... )
@@ -478,14 +483,24 @@ def parse_args():
     return parser.parse_args()
 
 
-def main(args=None):
+def main(
+    args=None,
+    _CPUINFO=_CPUINFO,
+    _SIBLINGS_FMT=_SIBLINGS_FMT,
+    _MAX_FREQ_FMT=_MAX_FREQ_FMT,
+):
     '''
     *main* runs the show
+    >>> _CPUINFO = 'samples/proc_cpuinfo_x86_64'
+    >>> _SIBLINGS_FMT = 'samples/topology/cpu{}'
+    >>> _MAX_FREQ_FMT = 'samples/cpuinfo_max_freq/cpu{}'
     >>> args = parse_args()
     >>> args.dry_run = True
     >>> args.doc_tests = False
     >>> args.verbose = False
-    >>> main(args)
+    >>> args.cpu_info = _CPUINFO
+    >>> args.hostname = 'host'
+    >>> main(args=args, _CPUINFO=_CPUINFO, _SIBLINGS_FMT=_SIBLINGS_FMT, _MAX_FREQ_FMT=_MAX_FREQ_FMT)
     '''
     if not args:
         args = parse_args()
@@ -505,12 +520,14 @@ def main(args=None):
     log.debug('Hostname: {}'.format(args.hostname))
     log.debug('OS: {}'.format(platform))
     log.debug('Arch: {}'.format(_get_arch()))
-    thread_ids = _machine2threadslist(args.cpu_info)
+    thread_ids = _machine2threadslist(_file=args.cpu_info)
     log.debug('CPU threads: {}'.format(len(thread_ids)))
-    siblings = _threadslist2coreslist(thread_ids)
+    siblings = _threadslist2coreslist(thread_ids, _file=_SIBLINGS_FMT)
     log.debug('CPU cores: {}'.format(len(siblings)))
     log.debug('CPU unique core ids: {}'.format(siblings))
-    cores = _cores2detailedcores(_machine2coremodels())
+    cores = _cores2detailedcores(
+        _machine2coremodels(_f=_CPUINFO), _fmt=_MAX_FREQ_FMT
+    )
     cores_data_init, cores_data_run = _siblings_cores2init_run(
         args, siblings, cores
     )

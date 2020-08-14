@@ -28,9 +28,9 @@ static INLINE __m128i _mm_recursion(const __m128i *x, const __m128i *y,
 				    __m128i z, const __m128i mask) {
     __m128i a, b, c, d;
 
-    a = _mm_load_si128(x);
+    a = _mm_loadu_si128(x);
     a = _mm_shuffle_epi32(a, RIGHT_ROT);
-    b = _mm_load_si128(y);
+    b = _mm_loadu_si128(y);
     d = _mm_shuffle_epi32(b, SHUFF2);
     a = _mm_xor_si128(a, d);
     b = _mm_srli_epi64(b, SHIFT64);
@@ -51,13 +51,13 @@ static INLINE void _mm_booter_am(__m128i *p_acc, __m128i *pos1, __m128i *pos2,
     __m128i mask32;
 
     mask32 = _mm_set_epi32(0, U32C(0xffffffff), 0, U32C(0xffffffff));
-    acc = _mm_load_si128(p_acc);
-    y = _mm_load_si128(&pos2[0]);
+    acc = _mm_loadu_si128(p_acc);
+    y = _mm_loadu_si128(&pos2[0]);
     for (i = 0; i < count; i++) {
-	x = _mm_load_si128(&pos1[i]);
-	z = _mm_load_si128(&pos2[i + 1]);
+	x = _mm_loadu_si128(&pos1[i]);
+	z = _mm_loadu_si128(&pos2[i + 1]);
 	a = _mm_add_epi32(x, y);
-	_mm_store_si128(&pos1[i], a);
+	_mm_storeu_si128(&pos1[i], a);
 	a = _mm_xor_si128(_mm_shuffle_epi32(a, BOOT_ROT1),
 			  _mm_srli_epi32(a, BOOT_SL1));
 	b = _mm_xor_si128(_mm_shuffle_epi32(z, BOOT_ROT2),
@@ -77,9 +77,9 @@ static INLINE void _mm_booter_am(__m128i *p_acc, __m128i *pos1, __m128i *pos2,
 	acc = _mm_add_epi32(acc, x);
 	/****** _mm_multiply end ******/
 	a = _mm_sub_epi32(a, acc);
-	_mm_store_si128(&pos2[i + 2], a);
+	_mm_storeu_si128(&pos2[i + 2], a);
     }
-    _mm_store_si128(p_acc, acc);
+    _mm_storeu_si128(p_acc, acc);
 }
 
 static INLINE void fast_boot_up(ECRYPT_ctx *ctx, s32 length)
@@ -107,16 +107,16 @@ static INLINE void _mm_genrand_block(ECRYPT_ctx * ctx)
     const __m128i mask = _mm_set_epi32(MSK4, MSK3, MSK2, MSK1);
 
     sfmt = (__m128i *)ctx->psfmt;
-    c = _mm_load_si128(&sfmt[N - 1]);
+    c = _mm_loadu_si128(&sfmt[N - 1]);
     c = _mm_recursion(&sfmt[0], &sfmt[POS1], c, mask);
-    _mm_store_si128(&sfmt[0], c);
+    _mm_storeu_si128(&sfmt[0], c);
     for (i = 1; i < N - POS1; i++) {
 	c = _mm_recursion(&sfmt[i], &sfmt[i + POS1], c, mask);
-	_mm_store_si128(&sfmt[i], c);
+	_mm_storeu_si128(&sfmt[i], c);
     }
     for (; i < N; i++) {
 	c = _mm_recursion(&sfmt[i], &sfmt[i + POS1 - N], c, mask);
-	_mm_store_si128(&sfmt[i], c);
+	_mm_storeu_si128(&sfmt[i], c);
     }
 }
 
@@ -220,10 +220,10 @@ static void INLINE fast_genrand_block_first(ECRYPT_ctx * ctx, u8 cipher[],
     _mm_filter_16bytes((__m128i *)ps, (__m128i *)ctx->accum,
 		       cipher, plain, N / 2);
     ps->sfmt[0][3] = INIL;
-    c = _mm_load_si128((__m128i *)ps->sfmt[N - 1]);
+    c = _mm_loadu_si128((__m128i *)ps->sfmt[N - 1]);
     c = _mm_recursion((__m128i *)ps->sfmt[0], (__m128i *)ps->sfmt[POS1],
 		      c, mask);
-    _mm_store_si128((__m128i *)ps->sfmt[N], c);
+    _mm_storeu_si128((__m128i *)ps->sfmt[N], c);
     ctx->psfmt = ps->sfmt[1];
 }
 
@@ -237,9 +237,9 @@ static INLINE void _mm_filter_16bytes(__m128i *sfmt, __m128i *p_accum,
     mask16 = _mm_set_epi32(U32C(0x0000ffff), U32C(0x0000ffff),
 			   U32C(0x0000ffff), U32C(0x0000ffff));
     mask32 = _mm_set_epi32(0, U32C(0xffffffff), 0, U32C(0xffffffff));
-    acc = _mm_load_si128(p_accum);
+    acc = _mm_loadu_si128(p_accum);
     for (i = 0; i < count; i++) {
-	y = _mm_load_si128(&sfmt[i*2]);
+	y = _mm_loadu_si128(&sfmt[i*2]);
 	x = acc;
 	x = _mm_shuffle_epi32(x, RIGHT_ROT);
 	x = _mm_srli_epi32(x, 1);
@@ -261,7 +261,7 @@ static INLINE void _mm_filter_16bytes(__m128i *sfmt, __m128i *p_accum,
 	out = _mm_srli_epi32(acc, 16);
 	out = _mm_xor_si128(out, y);
 	out = _mm_and_si128(out, mask16);
-	y = _mm_load_si128(&sfmt[i * 2 + 1]);
+	y = _mm_loadu_si128(&sfmt[i * 2 + 1]);
 	x = acc;
 	x = _mm_shuffle_epi32(x, RIGHT_ROT);
 	x = _mm_srli_epi32(x, 1);
@@ -285,11 +285,11 @@ static INLINE void _mm_filter_16bytes(__m128i *sfmt, __m128i *p_accum,
 	x = _mm_andnot_si128(mask16, x);
 	out = _mm_or_si128(out, x);
 	/* output */
-	x = _mm_load_si128((__m128i *)&plain[i * 16]);
+	x = _mm_loadu_si128((__m128i *)&plain[i * 16]);
 	x = _mm_xor_si128(x, out);
-	_mm_store_si128((__m128i *)&cipher[i * 16], x);
+	_mm_storeu_si128((__m128i *)&cipher[i * 16], x);
     }
-    _mm_store_si128(p_accum, acc);
+    _mm_storeu_si128(p_accum, acc);
 }
 
 #undef RIGHT_ROT

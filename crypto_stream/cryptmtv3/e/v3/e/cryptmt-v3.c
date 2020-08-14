@@ -400,7 +400,7 @@ void ECRYPT_keysetup(ECRYPT_ctx * ctx, const u8 * key, u32 keysize,
 {
     s32 i;
 
-    memset(ctx, 0, sizeof(ctx));
+    memset(ctx, 0, sizeof(ECRYPT_ctx));
     ctx->keysize = keysize / 128;
     ctx->ivsize = ivsize / 128;
     for (i = 0; i < keysize / 32; i++) {
@@ -500,7 +500,7 @@ void ECRYPT_decrypt_bytes(ECRYPT_ctx * ctx,
 }
 
 /* Message length in blocks. */
-void ECRYPT_encrypt_blocks(ECRYPT_ctx * ctx,
+void ECRYPT_process_blocks(int action, ECRYPT_ctx * ctx,
 			   const u8 * plaintext,
 			   u8 * ciphertext, u32 blocks)
 {
@@ -533,12 +533,4 @@ void ECRYPT_encrypt_blocks(ECRYPT_ctx * ctx,
 	    plaintext += ECRYPT_BLOCKLENGTH;
 	}
     }
-}
-
-/* Message length in blocks. */
-void ECRYPT_decrypt_blocks(ECRYPT_ctx * ctx,
-			   const u8 * ciphertext,
-			   u8 * plaintext, u32 blocks)
-{
-    ECRYPT_encrypt_blocks(ctx, ciphertext, plaintext, blocks);
 }

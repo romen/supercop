@@ -23,4 +23,13 @@ extern void output_compare(const unsigned char *,const unsigned char *,unsigned 
 extern unsigned long long myrandom(void);
 extern void poison(void *,unsigned long long);
 extern void unpoison(void *,unsigned long long);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern void randombytes_callback(unsigned char *,unsigned long long);
+
+#ifdef __cplusplus
+}
+#endif
