@@ -1,5 +1,5 @@
 /*
- * try-anything.c version 20190729
+ * try-anything.c version 20200815
  * D. J. Bernstein
  * Some portions adapted from TweetNaCl by Bernstein, Janssen, Lange, Schwabe.
  * Public domain.

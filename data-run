@@ -247,7 +247,7 @@ do
               ;;
           esac
         done >&8
-        for f in "$t2/try.c" "$t2/measure.c"
+        for f in "$t2/try.c" "$t2/measure.c" "try-anything.c" "measure-anything.c"
         do
           /bin/echo "$f" `adequatechecksum < $f`
         done >&8

@@ -37,7 +37,13 @@
           ok${language}-$abi \
           | while read compiler
           do
-            for security in constbranchindex timingleaks
+            (
+              if [ -f "$implementationdir/goal-constbranch" ] && [ -f "$implementationdir/goal-constindex" ]
+              then
+                echo constbranchindex
+              fi
+              echo timingleaks
+            ) | while read security
             do
               compilerword=`echo "$compiler" | tr ' ' '_'`
               if [ -f "$top/$abi/try/$language/$compilerword/$security/$implementationdir/data" ]
