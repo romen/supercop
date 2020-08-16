@@ -73,7 +73,7 @@ int verify(const uint8_t Signature[N/8], const uint8_t publicKey[PUBLICKEY_SIZE_
 		hash[i] = publicKey[index_publicKey][i];
 	}
 	#elif ( PUBLICKEY_SIZE_S==16)
-	__m128i enc_bytes00_15 = _mm_load_si128((const __m128i *) &publicKey[index_publicKey][ 0]); // Load a set of input_bytes values
+	__m128i enc_bytes00_15 = _mm_loadu_si128((const __m128i *) &publicKey[index_publicKey][ 0]); // Load a set of input_bytes values
 	#else
 	__m128i enc_bytes00_15 = _mm_loadu_si128((const __m128i *) &publicKey[index_publicKey][ 0]); // Load a set of input_bytes values
 	__m128i enc_bytes16_31 = _mm_loadu_si128((const __m128i *) &publicKey[index_publicKey][16]); // Load a set of input_bytes values (TODO: loads too much!!)
@@ -93,7 +93,7 @@ int verify(const uint8_t Signature[N/8], const uint8_t publicKey[PUBLICKEY_SIZE_
 			for(i = 0; i < PUBLICKEY_SIZE_S; i++)
 				hash[i] ^= publicKey[index_publicKey][i];
 			#elif ( PUBLICKEY_SIZE_S==16)
-			enc_bytes00_15 = _mm_xor_si128(_mm_load_si128((const __m128i *) &publicKey[index_publicKey][ 0]), enc_bytes00_15);
+			enc_bytes00_15 = _mm_xor_si128(_mm_loadu_si128((const __m128i *) &publicKey[index_publicKey][ 0]), enc_bytes00_15);
 			#else
 			enc_bytes00_15 = _mm_xor_si128(_mm_loadu_si128((const __m128i *) &publicKey[index_publicKey][ 0]), enc_bytes00_15);
 			enc_bytes16_31 = _mm_xor_si128(_mm_loadu_si128((const __m128i *) &publicKey[index_publicKey][16]), enc_bytes16_31);
@@ -121,7 +121,7 @@ int verify(const uint8_t Signature[N/8], const uint8_t publicKey[PUBLICKEY_SIZE_
 					for(i = 0; i < PUBLICKEY_SIZE_S; i++)
 						hash[i] ^= publicKey[index_publicKey][i];
 					#elif ( PUBLICKEY_SIZE_S==16)
-					enc_bytes00_15 = _mm_xor_si128(_mm_load_si128((const __m128i *) &publicKey[index_publicKey][ 0]), enc_bytes00_15);
+					enc_bytes00_15 = _mm_xor_si128(_mm_loadu_si128((const __m128i *) &publicKey[index_publicKey][ 0]), enc_bytes00_15);
 					#else
 					enc_bytes00_15 = _mm_xor_si128(_mm_loadu_si128((const __m128i *) &publicKey[index_publicKey][ 0]), enc_bytes00_15);
 					enc_bytes16_31 = _mm_xor_si128(_mm_loadu_si128((const __m128i *) &publicKey[index_publicKey][16]), enc_bytes16_31);
@@ -140,10 +140,10 @@ int verify(const uint8_t Signature[N/8], const uint8_t publicKey[PUBLICKEY_SIZE_
 	#if ((PUBLICKEY_SIZE_S<16) || PUBLICKEY_SIZE_S>32 || !(__SSSE3__))
 	
 	#elif ( PUBLICKEY_SIZE_S==16)
-	_mm_store_si128((__m128i *) &hash[0], enc_bytes00_15);
+	_mm_storeu_si128((__m128i *) &hash[0], enc_bytes00_15);
 	#else
-	_mm_store_si128((__m128i *) &hash[0], enc_bytes00_15);
-	_mm_store_si128((__m128i *) &hash[16], enc_bytes16_31);
+	_mm_storeu_si128((__m128i *) &hash[0], enc_bytes00_15);
+	_mm_storeu_si128((__m128i *) &hash[16], enc_bytes16_31);
 	#endif	
 
 	return 0;

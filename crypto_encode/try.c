@@ -1,5 +1,5 @@
 /*
- * crypto_encode/try.c version 20200809
+ * crypto_encode/try.c version 20200816
  * D. J. Bernstein
  * Public domain.
  */
@@ -31,25 +31,26 @@ void preallocate(void)
 
 void allocate(void)
 {
-  x = alignedcalloc(crypto_encode_ITEMS * crypto_encode_ITEMBYTES);
-  y = alignedcalloc(crypto_encode_STRBYTES);
-  x2 = alignedcalloc(crypto_encode_ITEMS * crypto_encode_ITEMBYTES);
-  y2 = alignedcalloc(crypto_encode_STRBYTES);
+  long long alloclen = crypto_encode_ITEMS * crypto_encode_ITEMBYTES + crypto_encode_ITEMBYTES + crypto_encode_STRBYTES;
+  x = alignedcalloc(alloclen);
+  y = alignedcalloc(alloclen);
+  x2 = alignedcalloc(alloclen);
+  y2 = alignedcalloc(alloclen);
 }
 
 void unalign(void)
 {
-  ++x;
+  x += crypto_encode_ITEMBYTES;
+  x2 += crypto_encode_ITEMBYTES;
   ++y;
-  ++x2;
   ++y2;
 }
 
 void realign(void)
 {
-  --x;
+  x -= crypto_encode_ITEMBYTES;
+  x2 -= crypto_encode_ITEMBYTES;
   --y;
-  --x2;
   --y2;
 }
 

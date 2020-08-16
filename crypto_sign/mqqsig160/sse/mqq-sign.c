@@ -126,8 +126,8 @@ static void InverseAffineTransformation(uint8_t *input_bytes, uint8_t result[N/8
 	#else
 	const __m128i bitMergeMask = _mm_set_epi8(0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f);
 	// Reorder the layout for v.
-	__m128i input_bytes0_15 =  _mm_load_si128((const __m128i *) &input_bytes[0]); // Load a set of input_bytes values
-	__m128i input_bytes16_31 = _mm_load_si128((const __m128i *) &input_bytes[16]); // Load a set of input_bytes values (TODO: loads too much!!)
+	__m128i input_bytes0_15 =  _mm_loadu_si128((const __m128i *) &input_bytes[0]); // Load a set of input_bytes values
+	__m128i input_bytes16_31 = _mm_loadu_si128((const __m128i *) &input_bytes[16]); // Load a set of input_bytes values (TODO: loads too much!!)
 
 	/* 
 	Affine transformation is just for the second call. The constant is extracted 
@@ -137,25 +137,25 @@ static void InverseAffineTransformation(uint8_t *input_bytes, uint8_t result[N/8
 	if (second_call){
 		__m128i mqq_sigma5_0_15, mqq_sigma5_0_15_high, mqq_sigma5_0_15_low, v_0_15, mqq_sigma5_16_31, mqq_sigma5_16_31_high, mqq_sigma5_16_31_low, v_16_31;
 		
-		mqq_sigma5_0_15 = _mm_load_si128((const __m128i *) &mqq_sigmaK[0]); 
+		mqq_sigma5_0_15 = _mm_loadu_si128((const __m128i *) &mqq_sigmaK[0]); 
 		mqq_sigma5_0_15 = _mm_and_si128(bitMergeMask, mqq_sigma5_0_15); // Now only the 4 bits needed is left in each byte
 		mqq_sigma5_0_15_high = _mm_slli_epi16(mqq_sigma5_0_15, 4); // Shift left by 4 (16 bit)
-		mqq_sigma5_0_15_low = _mm_load_si128((const __m128i *) &mqq_sigmaK[64]);
+		mqq_sigma5_0_15_low = _mm_loadu_si128((const __m128i *) &mqq_sigmaK[64]);
 		v_0_15 = _mm_xor_si128(mqq_sigma5_0_15_high, mqq_sigma5_0_15_low);
 		input_bytes0_15 = _mm_xor_si128(v_0_15, input_bytes0_15);
 		#ifndef __SSSE3__
-		_mm_store_si128((__m128i *) &input_bytes[0], input_bytes0_15);
+		_mm_storeu_si128((__m128i *) &input_bytes[0], input_bytes0_15);
 		#endif
 		
-		mqq_sigma5_16_31 = _mm_load_si128((const __m128i *) &mqq_sigmaK[16]);
+		mqq_sigma5_16_31 = _mm_loadu_si128((const __m128i *) &mqq_sigmaK[16]);
 		mqq_sigma5_16_31 = _mm_and_si128(bitMergeMask, mqq_sigma5_16_31); // Now only the 4 bits needed is left in each byte
 		mqq_sigma5_16_31_high = _mm_slli_epi16(mqq_sigma5_16_31, 4); // Shift left by 4 (16 bit)
-		mqq_sigma5_16_31_low = _mm_load_si128((const __m128i *) &mqq_sigmaK[64 + 16]);
+		mqq_sigma5_16_31_low = _mm_loadu_si128((const __m128i *) &mqq_sigmaK[64 + 16]);
 		v_16_31 = _mm_xor_si128(mqq_sigma5_16_31_high, mqq_sigma5_16_31_low);
 		input_bytes16_31 = _mm_xor_si128(v_16_31, input_bytes16_31);
 
 		#ifndef __SSSE3__
-		_mm_store_si128((__m128i *) &input_bytes[16], input_bytes16_31);
+		_mm_storeu_si128((__m128i *) &input_bytes[16], input_bytes16_31);
 		#endif
 	}
 	#endif
@@ -264,7 +264,7 @@ static void InverseAffineTransformation(uint8_t *input_bytes, uint8_t result[N/8
 	j = 0;
 	do
 	{
-		__m128i mqq_sigma1_values0_15 = _mm_load_si128((const __m128i *) &mqq_sigma1[j*8]); // Load a set of mqq_sigma1 values
+		__m128i mqq_sigma1_values0_15 = _mm_loadu_si128((const __m128i *) &mqq_sigma1[j*8]); // Load a set of mqq_sigma1 values
 		__m128i byteindex128 = _mm_srli_epi16(mqq_sigma1_values0_15, 3); // Shift right by 3 (16 bit)
 		byteindex128 = _mm_and_si128(byteindex128, shiftRightMask3); // The byte indexes
 		__m128i bitindex128 = _mm_shuffle_epi8(shiftTable, _mm_and_si128(lowBitMask, mqq_sigma1_values0_15));
@@ -281,7 +281,7 @@ static void InverseAffineTransformation(uint8_t *input_bytes, uint8_t result[N/8
 		
 		
 		// The "result" part
-		__m128i mqq_sigma5_values0_15 = _mm_load_si128((const __m128i *) &mqq_sigmaK[j*8]); // Load a set of mqq_sigma1 values
+		__m128i mqq_sigma5_values0_15 = _mm_loadu_si128((const __m128i *) &mqq_sigmaK[j*8]); // Load a set of mqq_sigma1 values
 		byteindex128 = _mm_srli_epi16(mqq_sigma5_values0_15, 3); // Shift right by 3 (16 bit)
 		byteindex128 = _mm_and_si128(byteindex128, shiftRightMask3); // The byte indexes
 		bitindex128 = _mm_shuffle_epi8(shiftTable, _mm_and_si128(lowBitMask, mqq_sigma5_values0_15));
@@ -397,10 +397,10 @@ static void InverseAffineTransformation(uint8_t *input_bytes, uint8_t result[N/8
 	
 	// N== 160 and SSSE3 is available.
 	
-	__m128i rp1_0_15 =  _mm_load_si128((const __m128i *) &rp1[0]);
-	__m128i rp1_16_31 = _mm_load_si128((const __m128i *) &rp1[16]);
-	__m128i rpK_0_15 =  _mm_load_si128((const __m128i *) &rpK[0]);
-	__m128i rpK_16_31 = _mm_load_si128((const __m128i *) &rpK[16]);
+	__m128i rp1_0_15 =  _mm_loadu_si128((const __m128i *) &rp1[0]);
+	__m128i rp1_16_31 = _mm_loadu_si128((const __m128i *) &rp1[16]);
+	__m128i rpK_0_15 =  _mm_loadu_si128((const __m128i *) &rpK[0]);
+	__m128i rpK_16_31 = _mm_loadu_si128((const __m128i *) &rpK[16]);
 
 	__m128i result_bytes0_15  = _mm_xor_si128(rp1_0_15, rpK_0_15);
 	__m128i result_bytes16_31 = _mm_xor_si128(rp1_16_31, rpK_16_31);
@@ -408,8 +408,8 @@ static void InverseAffineTransformation(uint8_t *input_bytes, uint8_t result[N/8
 	__m128i tmp =  _mm_slli_si128(result_bytes16_31, 32 - N/8);
 	result_bytes16_31 = _mm_alignr_epi8(result_bytes0_15, tmp, 32 - N/8);
 	
-	_mm_store_si128((__m128i *) &rp1[0], result_bytes0_15);
-	_mm_store_si128((__m128i *) &rp1[16], result_bytes16_31);
+	_mm_storeu_si128((__m128i *) &rp1[0], result_bytes0_15);
+	_mm_storeu_si128((__m128i *) &rp1[16], result_bytes16_31);
 	
 	__m128i result_bytes0_15_1 = result_bytes0_15;
 	__m128i result_bytes16_31_1 = result_bytes16_31;
@@ -464,8 +464,8 @@ static void InverseAffineTransformation(uint8_t *input_bytes, uint8_t result[N/8
 	result_bytes0_15  = _mm_xor_si128(result_bytes0_15, shifted_bytes0_15);
 	result_bytes16_31 = _mm_xor_si128(result_bytes16_31, shifted_bytes16_31);
 	
-	_mm_store_si128((__m128i *) &result[0], result_bytes0_15);
-	_mm_store_si128((__m128i *) &result[16], result_bytes16_31);
+	_mm_storeu_si128((__m128i *) &result[0], result_bytes0_15);
+	_mm_storeu_si128((__m128i *) &result[16], result_bytes16_31);
 	
 	
 	for(; j<=N/16; j++) 
@@ -517,9 +517,9 @@ static uint8_t Q(uint8_t i, uint8_t b1, uint8_t b2){
 			b1 <<= 1;
 		}
 		// TODO: add SSE code
-		e_values0_9 = _mm_load_si128((const __m128i *) e);
+		e_values0_9 = _mm_loadu_si128((const __m128i *) e);
 	}else{
-		e_values0_9 = _mm_load_si128((const __m128i *) cc2);
+		e_values0_9 = _mm_loadu_si128((const __m128i *) cc2);
 		
 		while(b1){
 			if(b1&0x80){
@@ -530,7 +530,7 @@ static uint8_t Q(uint8_t i, uint8_t b1, uint8_t b2){
 			tmp_ptr+=9;
 			b1 <<= 1;
 		}
-		_mm_store_si128((__m128i *) &e[0], e_values0_9);
+		_mm_storeu_si128((__m128i *) &e[0], e_values0_9);
 	}
 	#endif
 	/* So we finished with obtaining e0 .. e7 and e8 */
@@ -602,7 +602,7 @@ static uint8_t Q(uint8_t i, uint8_t b1, uint8_t b2){
 		result |= a[j]&1;
 	}
 	#else
-	__m128i a_values = _mm_load_si128((const __m128i *) a);
+	__m128i a_values = _mm_loadu_si128((const __m128i *) a);
 	const __m128i leastSignificantOfA_BitMask = _mm_set_epi8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 1, 3, 5, 7, 9, 11, 13, 15);
 	
 	a_values = _mm_slli_epi16(a_values, 15);

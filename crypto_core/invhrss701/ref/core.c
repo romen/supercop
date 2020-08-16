@@ -71,9 +71,6 @@ static void cmov(unsigned char *r, const unsigned char *x, size_t len, unsigned 
 
 int crypto_core(unsigned char *rbytes,const unsigned char *abytes,const unsigned char *kbytes,const unsigned char *cbytes)
 {
-  poly *r = (void *) rbytes;
-  const poly *a = (void *) abytes;
-  
   /* Schroeppel--Orman--O'Malley--Spatscheck
    * "Almost Inverse" algorithm as described
    * by Silverman in NTRU Tech Report #14 */
@@ -85,6 +82,7 @@ int crypto_core(unsigned char *rbytes,const unsigned char *abytes,const unsigned
   int sign, fsign = 0, t, swap;
   int done = 0;
   poly b, c, f, g;
+  poly r;
   poly *temp_r = &f;
 
   /* b(X) := 1 */
@@ -98,7 +96,7 @@ int crypto_core(unsigned char *rbytes,const unsigned char *abytes,const unsigned
 
   /* f(X) := a(X) */
   for(i=0; i<NTRU_N; i++)
-    f.coeffs[i] = mod3(a->coeffs[i] & 3);
+    f.coeffs[i] = mod3(abytes[2*i] & 3);
 
   /* g(X) := 1 + X + X^2 + ... + X^{N-1} */
   for(i=0; i<NTRU_N; i++)
@@ -134,23 +132,27 @@ int crypto_core(unsigned char *rbytes,const unsigned char *abytes,const unsigned
      representation of k, rotating for every power of 2, and performing a cmov
      if the respective bit is set. */
   for (i = 0; i < NTRU_N; i++)
-    r->coeffs[i] = mod3(fsign * b.coeffs[i]);
+    r.coeffs[i] = mod3(fsign * b.coeffs[i]);
 
   for (i = 0; i < 10; i++) {
     for (j = 0; j < NTRU_N; j++) {
-      temp_r->coeffs[j] = r->coeffs[(j + (1 << i)) % NTRU_N];
+      temp_r->coeffs[j] = r.coeffs[(j + (1 << i)) % NTRU_N];
     }
-    cmov((unsigned char *)&(r->coeffs),
+    cmov((unsigned char *)&(r.coeffs),
          (unsigned char *)&(temp_r->coeffs), sizeof(uint16_t) * NTRU_N, k & 1);
     k >>= 1;
   }
 
   /* Reduce modulo Phi_n */
-  for(i=0; i<NTRU_N; i++)
-    r->coeffs[i] = mod3(r->coeffs[i] + 2*r->coeffs[NTRU_N-1]);
+  for(i=0; i<NTRU_N; i++) {
+    rbytes[2*i] = mod3(r.coeffs[i] + 2*r.coeffs[NTRU_N-1]);
+    rbytes[2*i+1] = 0;
+  }
 
-  for(i=NTRU_N; i<NTRU_N_PADDED; i++)
-    r->coeffs[i] = 0;
+  for(i=NTRU_N; i<NTRU_N_PADDED; i++) {
+    rbytes[2*i] = 0;
+    rbytes[2*i+1] = 0;
+  }
 
   return 0;
 }
