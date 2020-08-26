@@ -34,8 +34,8 @@ static inline void poly_mulx(poly *a, int s)
   int i;
 
   for(i=1; i<NTRU_N; i++)
-    a->coeffs[NTRU_N-i] = (s * a->coeffs[NTRU_N-i-1]) | (!s * a->coeffs[NTRU_N-i]);
-  a->coeffs[0] = (!s * a->coeffs[0]);
+    a->coeffs[NTRU_N-i] = (s * a->coeffs[NTRU_N-i-1]) | ((1-s) * a->coeffs[NTRU_N-i]);
+  a->coeffs[0] = ((1-s) * a->coeffs[0]);
 }
 
 static inline void poly_divx(poly *a, int s)
@@ -43,8 +43,8 @@ static inline void poly_divx(poly *a, int s)
   int i;
 
   for(i=1; i<NTRU_N; i++)
-    a->coeffs[i-1] = (s * a->coeffs[i]) | (!s * a->coeffs[i-1]);
-  a->coeffs[NTRU_N-1] = (!s * a->coeffs[NTRU_N-1]);
+    a->coeffs[i-1] = (s * a->coeffs[i]) | ((1-s) * a->coeffs[i-1]);
+  a->coeffs[NTRU_N-1] = ((1-s) * a->coeffs[NTRU_N-1]);
 }
 
 static void cswappoly(poly *a, poly *b, int swap)
@@ -105,7 +105,7 @@ int crypto_core(unsigned char *rbytes,const unsigned char *abytes,const unsigned
   for(j=0; j<2*(NTRU_N-1)-1; j++)
   {
     sign = mod3(2 * g.coeffs[0] * f.coeffs[0]);
-    swap = (((sign & 2) >> 1) | sign) & !done & ((degf - degg) >> 15);
+    swap = (((sign & 2) >> 1) | sign) & (1-done) & ((degf - degg) >> 15);
 
     cswappoly(&f, &g, swap);
     cswappoly(&b, &c, swap);
@@ -113,13 +113,13 @@ int crypto_core(unsigned char *rbytes,const unsigned char *abytes,const unsigned
     degf ^= t;
     degg ^= t;
 
-    POLY_S3_FMADD(i, f, g, sign*(!done));
-    POLY_S3_FMADD(i, b, c, sign*(!done));
+    POLY_S3_FMADD(i, f, g, sign*(1-done));
+    POLY_S3_FMADD(i, b, c, sign*(1-done));
 
-    poly_divx(&f, !done);
-    poly_mulx(&c, !done);
-    degf -= !done;
-    k += !done;
+    poly_divx(&f, 1-done);
+    poly_mulx(&c, 1-done);
+    degf -= 1-done;
+    k += 1-done;
 
     done = 1 - (((uint16_t)-degf) >> 15);
   }
