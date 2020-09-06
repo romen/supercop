@@ -546,6 +546,8 @@ do
 
         touch "$top/$target/work/test-more.inc"
         [ -f "$o/$p/supercop/test-more.inc" ] && cp -p "$o/$p/supercop/test-more.inc" "$top/$target/work/test-more.inc"
+        touch "$top/$target/work/test-loops.inc"
+        [ -f "$o/$p/supercop/test-loops.inc" ] && cp -p "$o/$p/supercop/test-loops.inc" "$top/$target/work/test-loops.inc"
 
         cp -p MACROS "$top/$target/work/MACROS"
         cp -p PROTOTYPES.c "$top/$target/work/PROTOTYPES.c"

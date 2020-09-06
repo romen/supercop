@@ -406,7 +406,7 @@ do
                   then
                     :
                   else
-                    echo "missing $incl"
+                    echo "=== `date` === missing $incl in $abi/implementation/$implementationdir"
                   fi
                   ;;
               esac
@@ -453,6 +453,8 @@ do
   
           touch "$work/compile/test-more.inc"
           [ -f "$o/$p/supercop/test-more.inc" ] && cp -p "$o/$p/supercop/test-more.inc" "$work/compile/test-more.inc" || :
+          touch "$work/compile/test-loops.inc"
+          [ -f "$o/$p/supercop/test-loops.inc" ] && cp -p "$o/$p/supercop/test-loops.inc" "$work/compile/test-loops.inc" || :
   
           cp -p MACROS "$work/compile/MACROS"
           cp -p PROTOTYPES.c "$work/compile/PROTOTYPES.c"
