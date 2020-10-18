@@ -65,7 +65,7 @@ stackptr statebytes_stack
 stack32 inlen_stack
 stack32 i_stack
 
-pushenter CRYPTO_NAMESPACE(inner)
+pushenter inner
 
 statebytes_stack = input_0
 in_stack = input_1

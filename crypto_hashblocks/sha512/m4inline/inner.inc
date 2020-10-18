@@ -88,8 +88,8 @@ typedef unsigned long long uint64;
 // qhasm: stackptr statebytes_stack
 // qhasm: stack32 inlen_stack
 // qhasm: stack32 i_stack
-// qhasm: pushenter CRYPTO_NAMESPACE(inner)
-int CRYPTO_NAMESPACE(inner)(unsigned char *p0,unsigned char *p1,unsigned int i2,unsigned char *p3)
+// qhasm: pushenter inner
+int inner(unsigned char *p0,unsigned char *p1,unsigned int i2,unsigned char *p3)
 {
 int equal;
 int unsignedge;
