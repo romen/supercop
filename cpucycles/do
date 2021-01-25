@@ -94,7 +94,7 @@ okabi | (
             cp $n.h cpucycles-impl.h || continue
             $c -c cpucycles-impl.c || continue
             $c -o test test.c cpucycles-impl.o || continue
-            killafter 300 ./test || continue
+            $CPUCYCLESWRAPPER ./test || continue
             echo "=== `date` === Success. Using $n.c." >&2
             mkdir -p lib/$abi
             mv cpucycles-impl.o lib/$abi/cpucycles.o
