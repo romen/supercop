@@ -1,0 +1,14 @@
+#!/bin/sh
+
+echo ''
+echo '[build-dependencies]'
+echo 'cc = "1.0"'
+echo ''
+echo '[[bin]]'
+echo 'name = "try-small"'
+echo ''
+echo '[[bin]]'
+echo 'name = "try"'
+echo ''
+echo '[[bin]]'
+echo 'name = "measure"'
