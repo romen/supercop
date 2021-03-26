@@ -1,6 +1,0 @@
-#!/bin/sh
-
-opi="$1"
-
-sed 's/CRYPTO_NAMESPACETOP/'"$opi"'/g' \
-| sed 's/CRYPTO_NAMESPACE(\([a-zA-Z0-9_]*\))/'"$opi"'_\1/g'

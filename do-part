@@ -524,6 +524,7 @@ do
             sed -i 's/int main/int c_main/' \
               "$work/compile/try-anything.$language" \
               "$work/compile/measure-anything.$language"
+            cp -pr rusthooks "$work/compile/rusthooks"
           fi
           # XXX: also support standalone *.rs via okrs-${abi}
 
@@ -578,6 +579,20 @@ do
                 echo "#endif"
               ) > "$opp.h"
             done
+
+            if [ "$rust" ]
+            then
+              mkdir -p src/bin
+              supercop-bin-rs "$o" "$op" "$opi" try-anything try-small $rstrylibs > src/bin/try-small.rs
+              supercop-bin-rs "$o" "$op" "$opi" try-anything try $rstrylibs > src/bin/try.rs
+              supercop-bin-rs "$o" "$op" "$opi" measure-anything measure $rsmeasurelibs > src/bin/measure.rs
+              supercop-cargo-extra >> Cargo.toml
+              if [ "$wanttimecop" ]
+              then
+                supercop-bin-rs "$o" "$op" "$opi" try-anything try-timecop $rstrylibs > src/bin/try-timecop.rs
+                timecop-cargo-extra >> Cargo.toml
+              fi
+            fi
   
             ok${language}-$abi \
             | while read compilerbin compileropts
@@ -626,38 +641,27 @@ do
 
               if [ "$rust" ]
               then
-                find . -type f -name '*.rs' \
-                | while read rs
-                do
-                  ( rm "$rs"
-                    supercop-namespace "$opi" > "$rs"
-                  ) < "$rs"
-                done
                 supercop-build-rs "$op" "$lib/$abi" "$lib/nontimecop/$abi" > build.rs
-                mkdir -p src/bin
-                supercop-bin-rs "$op" try-anything try-small $rstrylibs > src/bin/try-small.rs
-                supercop-bin-rs "$op" try-anything try $rstrylibs > src/bin/try.rs
-                supercop-bin-rs "$op" measure-anything measure $rsmeasurelibs > src/bin/measure.rs
-                supercop-cargo-extra >> Cargo.toml
                 if killafter 300 \
                    env \
                    CC="$compilerbin" \
                    CFLAGS="$compileropts $includes -DSUPERCOP -DCOMPILER=\"$compilerword\"" \
                    RUSTFLAGS='-C target_cpu=native' \
-                   cargo build --release >../errors 2>&1
+                   cargo build -q --release --bin try-small --bin try --bin measure >../errors 2>&1
                 then
                   cp target/release/try-small try-small || ok=0
                   cp target/release/try try || ok=0
                   cp target/release/measure measure || ok=0
                   strip try-small try measure || :
                 else
-                  cat ../errors \
-                  | while read err
-                  do
-                    echo "$version $shorthostname $abi $startdate $o $p/$security fromcompiler $implementationdir $compilerword try.$language $err" >&5
-                  done
                   ok=0
                 fi
+                cat ../errors \
+                | while read err
+                do
+                  echo "$version $shorthostname $abi $startdate $o $p/$security fromcompiler $implementationdir $compilerword try.$language $err" >&5
+                done
+                cargo clean -q
               fi
               [ "$ok" = 1 ] || continue
 
@@ -749,26 +753,24 @@ do
                 if [ "$rust" ]
                 then
                   timecop-build-rs "$op" "$lib/$abi" "$lib/timecop/$abi" > build.rs
-                  mkdir -p src/bin
-                  supercop-bin-rs "$op" try-anything try-timecop $rstrylibs > src/bin/try-timecop.rs
-                  timecop-cargo-extra >> Cargo.toml
                   if killafter 300 \
                      env \
                      CC="$compilerbin" \
                      CFLAGS="$compileropts $timecopincludes -DSUPERCOP -DCOMPILER=\"$compilerword\"" \
                      RUSTFLAGS='-C target_cpu=native' \
-                     cargo build --release --bin try-timecop >../errors 2>&1
+                     cargo build -q --release --bin try-timecop >../errors 2>&1
                   then
                     cp target/release/try-timecop try-timecop || ok=0
                     strip try-timecop || :
                   else
-                    cat ../errors \
-                    | while read err
-                    do
-                      echo "$version $shorthostname $abi $startdate $o $p/$security fromcompiler $implementationdir $compilerword try.$language $err" >&5
-                    done
                     ok=0
                   fi
+                  cat ../errors \
+                  | while read err
+                  do
+                    echo "$version $shorthostname $abi $startdate $o $p/$security fromcompiler $implementationdir $compilerword try.$language $err" >&5
+                  done
+                  cargo clean -q
                 fi
                 [ "$ok" = 1 ] || continue
 
