@@ -717,7 +717,7 @@ do
             [ -f OK ] || exit 0
           fi
   
-          if sh -c "killafter 3600 ./try-small $version $abi $implementationdir $compilerword || exit $?" >../outputs 2>../errors
+          if sh -c "killafter 3600 ./try-small $version $abi $implementationdir $compilerword"' || exit $?' >../outputs 2>../errors
           then
             checksumsmall=`awk '{print $1}' < ../outputs`
             cycles=`awk '{print $2}' < ../outputs`
@@ -758,7 +758,7 @@ do
             [ -f OK ] || exit 0
           fi
   
-          if sh -c "killafter 3600 ./try $version $abi $implementationdir $compilerword || exit $?" >../outputs 2>../errors
+          if sh -c "killafter 3600 ./try $version $abi $implementationdir $compilerword"' || exit $?' >../outputs 2>../errors
           then
             checksumbig=`awk '{print $1}' < ../outputs`
             cycles=`awk '{print $2}' < ../outputs`

@@ -515,6 +515,10 @@ do
               echo "#define TIMECOP_LOOPS $TIMECOP"
               echo '#include "try.'"$language"'"'
             ) > "$work/compile/try-timecop.$language"
+            ( echo '#define TIMECOP'
+              echo "#define TIMECOP_LOOPS $TIMECOP"
+              echo '#include "try-anything.'"$language"'"'
+            ) > "$work/compile/try-anything-timecop.$language"
           fi
 
           rust=''
@@ -677,7 +681,7 @@ do
               fi
               [ "$ok" = 1 ] || continue
   
-              if sh -c "killafter 3600 ./try-small $version $abi $implementationdir $compilerword || exit $?" >../outputs 2>../errors
+              if sh -c "killafter 3600 ./try-small $version $abi $implementationdir $compilerword"' || exit $?' >../outputs 2>../errors
               then
                 checksumsmall=`awk '{print $1}' < ../outputs`
                 cycles=`awk '{print $2}' < ../outputs`
@@ -714,7 +718,7 @@ do
               fi
               [ "$ok" = 1 ] || continue
   
-              if sh -c "killafter 3600 ./try $version $abi $implementationdir $compilerword || exit $?" >../outputs 2>../errors
+              if sh -c "killafter 3600 ./try $version $abi $implementationdir $compilerword"' || exit $?' >../outputs 2>../errors
               then
                 checksumbig=`awk '{print $1}' < ../outputs`
                 cycles=`awk '{print $2}' < ../outputs`
@@ -776,7 +780,7 @@ do
                   killafter 300 \
                   $compiler -DSUPERCOP \
                     $timecopincludes \
-                    -o try-timecop try-timecop.$language try-anything.$language \
+                    -o try-timecop try-timecop.$language try-anything-timecop.$language \
                     "lib$op.a" $timecoptrylibs >../errors 2>&1 || ok=0
                   cat ../errors \
                   | while read err
@@ -786,7 +790,7 @@ do
                 fi
                 [ "$ok" = 1 ] || continue
 
-                if sh -c "killafter 600 valgrind -q --error-exitcode=99 --track-origins=yes ./try-timecop $version $abi $implementationdir $compilerword || exit $?" >../outputs 2>../errors
+                if sh -c "killafter 600 valgrind -q --error-exitcode=99 --track-origins=yes ./try-timecop $version $abi $implementationdir $compilerword"' || exit $?' >../outputs 2>../errors
                 then
                   echo "$version $shorthostname $abi $startdate $o $p/$security timecop_pass $implementationdir $compilerword $TIMECOP $?" >&5
                   word=timecop_output
