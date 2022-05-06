@@ -1,1 +1,1 @@
-../opt64/config.h
+../../ascon128av12/opt32/config.h

@@ -1,1 +1,1 @@
-../../asconxofv12/ref/word.h
+../../asconhashabi32v12/ref/word.h

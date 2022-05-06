@@ -1,1 +1,1 @@
-../../asconxofv12/opt64/config.h
+../../asconhashav12/opt32/config.h

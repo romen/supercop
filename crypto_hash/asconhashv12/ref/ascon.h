@@ -1,1 +1,1 @@
-../../asconxofv12/ref/ascon.h
+../../asconhashabi32v12/ref/ascon.h

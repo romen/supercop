@@ -1,1 +1,1 @@
-../../ascon128v12/bi32_lowsize/config.h
+../bi8/config.h

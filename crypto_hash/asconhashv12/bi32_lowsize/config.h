@@ -1,1 +1,1 @@
-../../asconxofv12/bi32_lowsize/config.h
+../../asconhashav12/bi8/config.h

@@ -1,1 +1,1 @@
-../../asconxofv12/bi8/word.h
+../../asconhashav12/bi8/word.h
