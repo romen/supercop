@@ -9,6 +9,7 @@
 #include "endian.h"
 #include "forceinline.h"
 #include "interleave.h"
+#include "randombytes.h"
 #include "shares.h"
 
 typedef struct {
@@ -102,12 +103,8 @@ forceinline word_t MXORAND(word_t c, word_t a, word_t b, int ns) {
 
 forceinline word_t MRND(int ns) {
   word_t w;
-  if (ns >= 2) RND(w.s[1].w[0]);
-  if (ns >= 2) RND(w.s[1].w[1]);
-  if (ns >= 3) RND(w.s[2].w[0]);
-  if (ns >= 3) RND(w.s[2].w[1]);
-  if (ns >= 4) RND(w.s[3].w[0]);
-  if (ns >= 4) RND(w.s[3].w[1]);
+  randombytes((uint8_t*)&(w.s[1].w[0]), (ns - 1) * 8);
+  w.s[0].w[0] = w.s[0].w[1] = 0;
   return w;
 }
 
@@ -121,33 +118,43 @@ forceinline word_t MMIX(word_t w, int ns) {
   return w;
 }
 
-forceinline word_t MREDUCE(word_t w, int nsi, int nso) {
-  if (nsi >= 2 && nso < 2) w.s[0].w[0] ^= ROR32(w.s[1].w[0], ROT(1));
-  if (nsi >= 2 && nso < 2) w.s[0].w[1] ^= ROR32(w.s[1].w[1], ROT(1));
-  if (nsi >= 3 && nso < 3) w.s[0].w[0] ^= ROR32(w.s[2].w[0], ROT(2));
-  if (nsi >= 3 && nso < 3) w.s[0].w[1] ^= ROR32(w.s[2].w[1], ROT(2));
-  if (nsi >= 4 && nso < 4) w.s[0].w[0] ^= ROR32(w.s[3].w[0], ROT(3));
-  if (nsi >= 4 && nso < 4) w.s[0].w[1] ^= ROR32(w.s[3].w[1], ROT(3));
+forceinline word_t MREMASK(word_t w, word_t r, int nsi, int nso) {
+  if (nsi >= 2 && nso < 2) w.s[0].w[0] ^= ROR32(r.s[1].w[0], ROT(1));
+  if (nsi >= 2 && nso < 2) w.s[0].w[1] ^= ROR32(r.s[1].w[1], ROT(1));
+  if (nsi >= 3 && nso < 3) w.s[0].w[0] ^= ROR32(r.s[2].w[0], ROT(2));
+  if (nsi >= 3 && nso < 3) w.s[0].w[1] ^= ROR32(r.s[2].w[1], ROT(2));
+  if (nsi >= 4 && nso < 4) w.s[0].w[0] ^= ROR32(r.s[3].w[0], ROT(3));
+  if (nsi >= 4 && nso < 4) w.s[0].w[1] ^= ROR32(r.s[3].w[1], ROT(3));
   return w;
 }
 
+forceinline word_t MREDUCE(word_t w, int nsi, int nso) {
+  return MREMASK(w, w, nsi, nso);
+}
+
 forceinline word_t MEXPAND(word_t w, int nsi, int nso) {
-  return MREDUCE(w, nso, nsi);
+  return MREMASK(w, w, nso, nsi);
 }
 
 forceinline word_t MREUSE(word_t w, uint64_t val, int ns) {
   w.s[0].w[0] = (uint32_t)val;
   w.s[0].w[1] = val >> 32;
   w = MMIX(w, ns);
-  w = MEXPAND(w, 1, ns);
+  w = MREMASK(w, w, ns, 1);
   return w;
 }
 
 forceinline word_t MZERO(int ns) {
-  word_t w;
-  w = MRND(ns);
-  w = MREUSE(w, 0, ns);
+  word_t w = MRND(ns);
+  w = MMIX(w, ns);
+  w = MREMASK(w, w, ns, 1);
   return w;
+}
+
+forceinline word_t MREFRESH(word_t w, int ns) {
+  word_t r = MRND(ns);
+  w = MREMASK(w, r, ns, 1);
+  return MXOR(w, r, ns);
 }
 
 forceinline word_t MMASK(word_t w, int n) {
@@ -157,64 +164,32 @@ forceinline word_t MMASK(word_t w, int n) {
   return w;
 }
 
-forceinline word_t MREFRESH(word_t w, int ns) {
-  word_t r = MZERO(ns);
-  return MXOR(w, r, ns);
-}
-
-forceinline int MNOTZERO(word_t a, word_t b, int ns) {
-  word_t c = MZERO(ns);
-  /* note: OR(a,b) = ~BIC(~a,b) */
-  a.s[0].w[0] = ~a.s[0].w[0];
-  a.s[0].w[1] = ~a.s[0].w[1];
-  /* OR first and second 64-bit word */
-  c = MXORBIC(c, a, b, 0, ns);
-  c = MXORBIC(c, a, b, 1, ns);
-  /* OR even and odd words */
-  if (ns >= 1) b.s[0].w[0] = c.s[0].w[1];
-  if (ns >= 2) b.s[1].w[0] = c.s[1].w[1];
-  if (ns >= 3) b.s[2].w[0] = c.s[2].w[1];
-  if (ns >= 4) b.s[3].w[0] = c.s[3].w[1];
-  a = MXORBIC(a, b, c, 0, ns);
-  /* loop to OR 16/8/4/2/1 bit chunks */
-  for (int i = 16; i > 0; i >>= 1) {
-    if (ns >= 1) b.s[0].w[0] = ROR32(a.s[0].w[0], i);
-    if (ns >= 2) b.s[1].w[0] = ROR32(a.s[1].w[0], i);
-    if (ns >= 3) b.s[2].w[0] = ROR32(a.s[2].w[0], i);
-    if (ns >= 4) b.s[3].w[0] = ROR32(a.s[3].w[0], i);
-    c = MXORBIC(c, a, b, 0, ns);
-    if (ns >= 1) a.s[0].w[0] = c.s[0].w[0];
-    if (ns >= 2) a.s[1].w[0] = c.s[1].w[0];
-    if (ns >= 3) a.s[2].w[0] = c.s[2].w[0];
-    if (ns >= 4) a.s[3].w[0] = c.s[3].w[0];
-  }
-  /* unmask result */
-  if (ns >= 2) a.s[0].w[0] ^= ROR32(a.s[1].w[0], ROT(1));
-  if (ns >= 3) a.s[0].w[0] ^= ROR32(a.s[2].w[0], ROT(2));
-  if (ns >= 4) a.s[0].w[0] ^= ROR32(a.s[3].w[0], ROT(3));
-  return ~a.s[0].w[0];
-}
-
 forceinline share_t LOADSHARE(uint32_t* data, int ns) {
   share_t s;
+  uint32_t lo, hi;
+  LDR(lo, data, 0);
+  LDR(hi, data, 4 * ns);
 #if !ASCON_EXTERN_BI
-  BD(s.w[0], s.w[1], data[0], data[ns]);
+  BD(s.w[0], s.w[1], lo, hi);
   if (ns == 2) CLEAR();
 #else
-  s.w[0] = data[0];
-  s.w[1] = data[ns];
+  s.w[0] = lo;
+  s.w[1] = hi;
 #endif
   return s;
 }
 
 forceinline void STORESHARE(uint32_t* data, share_t s, int ns) {
+  uint32_t lo, hi;
 #if !ASCON_EXTERN_BI
-  BI(data[0], data[ns], s.w[0], s.w[1]);
+  BI(lo, hi, s.w[0], s.w[1]);
   if (ns == 2) CLEAR();
 #else
-  data[0] = s.w[0];
-  data[ns] = s.w[1];
+  lo = s.w[0];
+  hi = s.w[1];
 #endif
+  STR(lo, data, 0);
+  STR(hi, data, 4 * ns);
 }
 
 forceinline word_t MLOAD(uint32_t* data, int ns) {
