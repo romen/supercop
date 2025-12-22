@@ -1,7 +1,9 @@
+// 20251220 djb: some usage of cryptoint
 #include <stdint.h>
 #include "params.h"
 #include "poly.h"
 #include "polyvec.h"
+#include "crypto_int16.h"
 
 /*************************************************
 * Name:        polyvec_compress
@@ -23,7 +25,7 @@ void polyvec_compress(uint8_t r[KYBER_POLYVECCOMPRESSEDBYTES], const polyvec *a)
     for(j=0;j<KYBER_N/8;j++) {
       for(k=0;k<8;k++) {
         t[k]  = a->vec[i].coeffs[8*j+k];
-        t[k] += ((int16_t)t[k] >> 15) & KYBER_Q;
+        t[k] += crypto_int16_negative_mask((int16_t)t[k]) & KYBER_Q;
         d0 = t[k];
         d0 <<= 11;
         d0 += 1664;
@@ -52,7 +54,7 @@ void polyvec_compress(uint8_t r[KYBER_POLYVECCOMPRESSEDBYTES], const polyvec *a)
     for(j=0;j<KYBER_N/4;j++) {
       for(k=0;k<4;k++) {
         t[k]  = a->vec[i].coeffs[4*j+k];
-        t[k] += ((int16_t)t[k] >> 15) & KYBER_Q;
+        t[k] += crypto_int16_negative_mask((int16_t)t[k]) & KYBER_Q;
         d0 = t[k];
         d0 <<= 10;
         d0 += 1665;

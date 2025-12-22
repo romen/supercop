@@ -1,3 +1,4 @@
+// 20251220 djb: more usage of cryptoint
 // 20240806 djb: some automated conversion to cryptoint
 #include <stdint.h>
 #include "params.h"
@@ -6,6 +7,7 @@
 #include "reduce.h"
 #include "cbd.h"
 #include "symmetric.h"
+#include "crypto_int16.h"
 #include "crypto_int64.h"
 
 /*************************************************
@@ -29,7 +31,7 @@ void poly_compress(uint8_t r[KYBER_POLYCOMPRESSEDBYTES], const poly *a)
     for(j=0;j<8;j++) {
       // map to positive standard representatives
       u  = a->coeffs[8*i+j];
-      u += (u >> 15) & KYBER_Q;
+      u += crypto_int16_negative_mask(u) & KYBER_Q;
       d0 = u << 4;
       d0 += 1665;
       d0 *= 80635;
@@ -48,7 +50,7 @@ void poly_compress(uint8_t r[KYBER_POLYCOMPRESSEDBYTES], const poly *a)
     for(j=0;j<8;j++) {
       // map to positive standard representatives
       u  = a->coeffs[8*i+j];
-      u += (u >> 15) & KYBER_Q;
+      u += crypto_int16_negative_mask(u) & KYBER_Q;
       d0 = u << 5;
       d0 += 1664;
       d0 *= 40318;
@@ -127,9 +129,9 @@ void poly_tobytes(uint8_t r[KYBER_POLYBYTES], const poly *a)
   for(i=0;i<KYBER_N/2;i++) {
     // map to positive standard representatives
     t0  = a->coeffs[2*i];
-    t0 += ((int16_t)t0 >> 15) & KYBER_Q;
+    t0 += crypto_int16_negative_mask((int16_t)t0) & KYBER_Q;
     t1 = a->coeffs[2*i+1];
-    t1 += ((int16_t)t1 >> 15) & KYBER_Q;
+    t1 += crypto_int16_negative_mask((int16_t)t1) & KYBER_Q;
     r[3*i+0] = (t0 >> 0);
     r[3*i+1] = (t0 >> 8) | (t1 << 4);
     r[3*i+2] = (t1 >> 4);
